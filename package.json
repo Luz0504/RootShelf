@@ -1,0 +1,27 @@
+{
+  "name": "rootshelf",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "NEXT_DIST_DIR=.next-dev next dev -p 3000 -H 0.0.0.0",
+    "build": "NEXT_DIST_DIR=.next next build && (cp -r public .next/standalone/ 2>/dev/null || true) && (cp -r .next/static .next/standalone/.next/ 2>/dev/null || true)",
+    "start": "node .next/standalone/server.js",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.0.0",
+    "lucide-react": "^0.546.0",
+    "motion": "^12.23.24",
+    "next": "^15.0.0",
+    "postcss": "^8.4.0",
+    "react": "^19.0.1",
+    "react-dom": "^19.0.1",
+    "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^15.0.0"
+  }
+}

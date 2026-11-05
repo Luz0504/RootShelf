@@ -1,0 +1,6 @@
+{
+  "name": "RootShelf - Lectura y Creación de Historias",
+  "description": "Plataforma de lectura, biblioteca personal y taller de creación de historias con fichas de personajes, lugares y objetos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

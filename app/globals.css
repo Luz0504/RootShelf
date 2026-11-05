@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+:root {
+  --primary: #A3195B;
+  --secondary: #F9B233;
+  --accent: #134038;
+  --bg-page: #EFEFEF;
+  --card-bg: #9E9E9E;
+  --card-light: #B8B8B8;
+}
+
+/* Strict user rule: no rounded borders on cards, buttons, inputs, containers */
+*, *::before, *::after {
+  border-radius: 0px !important;
+}
+
+/* Intentional circular exceptions (e.g. user avatars, badge indicators) */
+.rounded-full,
+.rounded-full *,
+.avatar-circle,
+.avatar-circle * {
+  border-radius: 9999px !important;
+}
+
+body {
+  font-family: 'Outfit', 'MADE TOMMY', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--bg-page);
+  color: #1A1A1A;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+input, textarea, select, button {
+  font-family: inherit;
+  border-radius: 0px !important;
+}
+
+.rounded-full button,
+button.rounded-full {
+  border-radius: 9999px !important;
+}
+
+/* Custom scrollbar matching rectilinear theme */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #E5E5E5;
+}
+::-webkit-scrollbar-thumb {
+  background: #A3195B;
+}
+
+/* Subtle microinteractions & active feedback */
+button,
+a,
+input,
+select,
+textarea {
+  transition-property: color, background-color, border-color, opacity, box-shadow, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+button:active:not(:disabled),
+a[role="button"]:active {
+  transform: scale(0.985);
+}
+
+/* Accessible focus ring style matching brand palette */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid #F9B233;
+  outline-offset: 1px;
+}
+
+/* Strict support for prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transform: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+

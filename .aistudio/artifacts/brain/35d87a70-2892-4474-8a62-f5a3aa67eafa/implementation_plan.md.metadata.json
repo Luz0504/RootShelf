@@ -1,0 +1,6 @@
+{
+  "summary":  "Plan de migración revisado con las 6 correcciones solicitadas: 1) Redirección en logout a '/' en modo invitado; 2) Comprobación rigurosa de autoría basada en ID único (authorId / userId); 3) Flujos diferenciados y funcionales de inicio de sesión y registro; 4) Regla rectilínea con excepción para avatares circulares; 5) Configuración exacta de Tailwind CSS v4 con @tailwindcss/postcss y ESLint para Next.js; 6) Preservación estricta y retrocompatible de los datos en localStorage.",
+  "updatedAt":  "2026-10-29T23:31:04.184884559Z",
+  "requestFeedback":  true,
+  "userFacing":  true
+}
