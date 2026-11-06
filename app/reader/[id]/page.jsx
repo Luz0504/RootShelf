@@ -86,7 +86,7 @@ export default function ReaderPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Column: 4 columns */}
         <div className="lg:col-span-4 space-y-4">
-          <div className="w-full aspect-[4/3] border border-gray-300 relative overflow-hidden shadow-xs">
+          <div className="w-full max-w-sm mx-auto aspect-[4/3] border border-gray-300 relative overflow-hidden shadow-xs">
             <BookCover
               coverUrl={story.coverUrl}
               title={story.title}
@@ -96,8 +96,11 @@ export default function ReaderPage() {
             />
           </div>
 
-          {/* Chapters list vertical */}
-          <div className="space-y-2.5">
+          {/* Chapters list vertical: Scrollable on mobile to avoid pushing reader pane off-screen */}
+          <div className="space-y-2 max-h-60 sm:max-h-72 lg:max-h-none overflow-y-auto pr-1">
+            <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wider px-1 lg:hidden">
+              Capítulos disponibles ({story.chapters.length})
+            </div>
             {story.chapters.map((chapter, idx) => {
               const isActive = idx === currentChapterIndex;
               return (
@@ -105,15 +108,17 @@ export default function ReaderPage() {
                   key={chapter.id || idx}
                   type="button"
                   onClick={() => setCurrentChapterIndex(idx)}
-                  className={`w-full text-left px-4 py-3 font-semibold text-sm transition-colors border cursor-pointer ${
+                  className={`w-full text-left px-3.5 py-2.5 sm:py-3 font-semibold text-xs sm:text-sm transition-colors border cursor-pointer min-h-[42px] flex items-center ${
                     isActive
                       ? 'bg-[#A3195B] text-white border-[#A3195B]'
                       : 'bg-[#9E9E9E] text-gray-900 border-gray-400 hover:bg-[#8e8e8e]'
                   }`}
                 >
-                  {chapter.title.startsWith('Capítulo')
-                    ? chapter.title
-                    : `Capítulo ${chapter.number || idx + 1}: ${chapter.title}`}
+                  <span className="truncate">
+                    {chapter.title.startsWith('Capítulo')
+                      ? chapter.title
+                      : `Capítulo ${chapter.number || idx + 1}: ${chapter.title}`}
+                  </span>
                 </button>
               );
             })}
@@ -123,7 +128,7 @@ export default function ReaderPage() {
             <button
               type="button"
               onClick={() => router.push(`/stories/${story.id}/chapters/create`)}
-              className="w-full mt-3 py-2.5 px-3 bg-[#134038] hover:bg-[#0e2c26] text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all duration-150 active:scale-[0.98] shadow-xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F9B233]"
+              className="w-full mt-2 py-2.5 px-3 bg-[#134038] hover:bg-[#0e2c26] text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all duration-150 active:scale-[0.98] shadow-xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F9B233] min-h-[44px]"
             >
               <span>+ Agregar Nuevo Capítulo</span>
             </button>
@@ -131,15 +136,15 @@ export default function ReaderPage() {
         </div>
 
         {/* Right Area: 8 columns (Reading area) */}
-        <div className="lg:col-span-8 min-w-0 max-w-full bg-[#9E9E9E]/25 border border-gray-300 p-6 md:p-12 min-h-[500px]">
+        <div className="lg:col-span-8 min-w-0 max-w-full bg-[#9E9E9E]/25 border border-gray-300 p-4 sm:p-6 md:p-10 lg:p-12 min-h-[450px]">
           {currentChapter ? (
             <div className="w-full min-w-0 max-w-2xl mx-auto space-y-6">
-              <div className="border-b border-gray-300 pb-4 flex items-start justify-between gap-4">
+              <div className="border-b border-gray-300 pb-4 flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
                 <div className="flex-1 min-w-0">
                   <span className="text-xs font-bold text-[#A3195B] uppercase tracking-wider block truncate">
                     {story.title}
                   </span>
-                  <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mt-1 break-words">
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mt-1 break-words">
                     {currentChapter.title}
                   </h1>
                 </div>
@@ -148,7 +153,7 @@ export default function ReaderPage() {
                   <button
                     type="button"
                     onClick={() => router.push(`/stories/${story.id}/chapters/${currentChapter.id}/edit`)}
-                    className="px-3.5 py-1.5 bg-[#A3195B] hover:bg-[#8e154f] active:scale-[0.98] text-white text-xs font-semibold shrink-0 cursor-pointer transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F9B233]"
+                    className="px-3.5 py-2 bg-[#A3195B] hover:bg-[#8e154f] active:scale-[0.98] text-white text-xs font-semibold shrink-0 cursor-pointer transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F9B233] self-start min-h-[38px]"
                     title="Editar capítulo en pantalla amplia"
                   >
                     Editar Capítulo
@@ -156,17 +161,20 @@ export default function ReaderPage() {
                 )}
               </div>
 
-              <div className="text-gray-800 text-base md:text-lg leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:anywhere] font-serif w-full max-w-full">
+              <div className="text-gray-800 text-base sm:text-lg leading-relaxed sm:leading-loose whitespace-pre-wrap break-words [overflow-wrap:anywhere] font-serif w-full max-w-full">
                 {currentChapter.content}
               </div>
 
-              {/* Navigation between chapters */}
-              <div className="pt-10 flex items-center justify-between border-t border-gray-300">
+              {/* Navigation between chapters: Thumb-friendly stacked or side-by-side */}
+              <div className="pt-8 sm:pt-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-t border-gray-300">
                 <button
                   type="button"
                   disabled={currentChapterIndex === 0}
-                  onClick={() => setCurrentChapterIndex(currentChapterIndex - 1)}
-                  className="px-4 py-2 bg-[#9E9E9E] disabled:opacity-40 text-black text-xs font-bold uppercase tracking-wider border border-gray-400 cursor-pointer active:scale-[0.98] transition-all"
+                  onClick={() => {
+                    setCurrentChapterIndex(currentChapterIndex - 1);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="px-4 py-2.5 bg-[#9E9E9E] disabled:opacity-40 text-black text-xs font-bold uppercase tracking-wider border border-gray-400 cursor-pointer active:scale-[0.98] transition-all min-h-[44px] flex items-center justify-center"
                 >
                   ← Capítulo Anterior
                 </button>
@@ -174,8 +182,11 @@ export default function ReaderPage() {
                 <button
                   type="button"
                   disabled={currentChapterIndex >= story.chapters.length - 1}
-                  onClick={() => setCurrentChapterIndex(currentChapterIndex + 1)}
-                  className="px-4 py-2 bg-[#A3195B] disabled:opacity-40 text-white text-xs font-bold uppercase tracking-wider hover:bg-[#8e154f] cursor-pointer active:scale-[0.98] transition-all"
+                  onClick={() => {
+                    setCurrentChapterIndex(currentChapterIndex + 1);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="px-4 py-2.5 bg-[#A3195B] disabled:opacity-40 text-white text-xs font-bold uppercase tracking-wider hover:bg-[#8e154f] cursor-pointer active:scale-[0.98] transition-all min-h-[44px] flex items-center justify-center"
                 >
                   Siguiente Capítulo →
                 </button>

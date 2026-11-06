@@ -249,7 +249,7 @@ function ProfileContent() {
                 </div>
               ) : (
                 <div className="space-y-1">
-                  <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">
                       {currentUser.username}
                     </h1>
@@ -300,7 +300,7 @@ function ProfileContent() {
                     <button
                       type="button"
                       onClick={handleLogout}
-                      className="text-xs text-[#A3195B] hover:underline font-semibold cursor-pointer ml-auto"
+                      className="text-xs text-[#A3195B] hover:underline font-semibold cursor-pointer sm:ml-auto"
                     >
                       Cerrar sesión
                     </button>
@@ -313,7 +313,7 @@ function ProfileContent() {
               )}
 
               {/* Stats badges */}
-              <div className="flex flex-wrap gap-4 pt-3 text-xs text-gray-700">
+              <div className="flex flex-wrap gap-2.5 sm:gap-4 pt-3 text-xs text-gray-700">
                 <div className="bg-white border border-gray-300 px-3 py-1.5">
                   <span className="font-bold text-[#A3195B] mr-1.5">
                     {userWrittenStories.length}
@@ -565,8 +565,8 @@ function ProfileContent() {
           ) : (
             <div className="space-y-6">
               {/* Workspace Subtabs */}
-              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-gray-300 pb-3">
-                <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-300 pb-3">
+                <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
                     onClick={() => setWorkspaceSubTab('personajes')}

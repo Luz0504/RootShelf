@@ -135,11 +135,11 @@ export function ObjectForm({ initialObject = null }) {
             <label className="block text-sm font-semibold text-gray-800">
               Ubicación
             </label>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3">
               <button
                 type="button"
                 onClick={() => setIsAddingLocationText(!isAddingLocationText)}
-                className="h-10 px-4 bg-[#9E9E9E] hover:bg-[#8b8b8b] text-white text-xs font-semibold flex items-center gap-2 cursor-pointer border border-gray-400"
+                className="h-10 px-4 bg-[#9E9E9E] hover:bg-[#8b8b8b] text-white text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer border border-gray-400 w-full sm:w-auto"
               >
                 <VectorPlusIcon className="w-4 h-4 text-white" />
                 <span>Agregar Nuevo</span>
@@ -148,7 +148,7 @@ export function ObjectForm({ initialObject = null }) {
               <button
                 type="button"
                 onClick={() => setShowLocationSearch(true)}
-                className="h-10 px-4 bg-[#9E9E9E] hover:bg-[#8b8b8b] text-white text-xs font-semibold flex items-center gap-2 cursor-pointer border border-gray-400"
+                className="h-10 px-4 bg-[#9E9E9E] hover:bg-[#8b8b8b] text-white text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer border border-gray-400 w-full sm:w-auto"
               >
                 <SearchIcon className="w-4 h-4 text-white" />
                 <span>Buscar en Lugares</span>

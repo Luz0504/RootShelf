@@ -137,7 +137,7 @@ function RegisterContent() {
                   />
                 </div>
 
-                <div className="flex items-center justify-between pt-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-4">
                   <button
                     type="button"
                     onClick={() => {
@@ -151,7 +151,7 @@ function RegisterContent() {
 
                   <button
                     type="submit"
-                    className="flex items-center gap-2 px-6 py-2.5 bg-[#A3195B] hover:bg-[#8e154f] text-white font-semibold text-sm transition-colors cursor-pointer uppercase tracking-wider"
+                    className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#A3195B] hover:bg-[#8e154f] active:scale-[0.98] text-white font-semibold text-sm transition-colors cursor-pointer uppercase tracking-wider min-h-[44px]"
                   >
                     <span>Ingresar</span>
                     <ArrowBackIcon className="w-5 h-5 text-white rotate-180" />
@@ -162,15 +162,15 @@ function RegisterContent() {
           ) : (
             /* MODE: REGISTRO (Wireframes 16 & 17) */
             <div>
-              <h1 className="text-4xl md:text-5xl font-bold text-[#1A1A1A] mb-7 tracking-tight">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#1A1A1A] mb-5 sm:mb-7 tracking-tight">
                 Registro
               </h1>
 
               {step === 1 ? (
                 /* Step 1: Nombre, Apellido, Edad (Día, Mes, Año), E-Mail */
-                <form onSubmit={handleRegisterStep1Submit} className="space-y-5">
-                  <div className="space-y-2">
-                    <label className="block text-base font-normal text-gray-900">
+                <form onSubmit={handleRegisterStep1Submit} className="space-y-4 sm:space-y-5">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <label className="block text-sm sm:text-base font-normal text-gray-900">
                       Nombre
                     </label>
                     <input
@@ -178,12 +178,12 @@ function RegisterContent() {
                       required
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
-                      className="w-full h-9 px-3 bg-[#A6A6A6] text-gray-900 focus:bg-white focus:outline-none border border-transparent focus:border-[#134038]"
+                      className="w-full h-10 px-3 bg-[#A6A6A6] text-gray-900 focus:bg-white focus:outline-none border border-transparent focus:border-[#134038]"
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="block text-base font-normal text-gray-900">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <label className="block text-sm sm:text-base font-normal text-gray-900">
                       Apellido
                     </label>
                     <input
@@ -191,21 +191,21 @@ function RegisterContent() {
                       required
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
-                      className="w-full h-9 px-3 bg-[#A6A6A6] text-gray-900 focus:bg-white focus:outline-none border border-transparent focus:border-[#134038]"
+                      className="w-full h-10 px-3 bg-[#A6A6A6] text-gray-900 focus:bg-white focus:outline-none border border-transparent focus:border-[#134038]"
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="block text-base font-normal text-gray-900">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <label className="block text-sm sm:text-base font-normal text-gray-900">
                       Edad
                     </label>
-                    <div className="grid grid-cols-3 gap-6">
+                    <div className="grid grid-cols-3 gap-2 sm:gap-4">
                       <div className="relative">
                         <select
                           required
                           value={birthDay}
                           onChange={(e) => setBirthDay(e.target.value)}
-                          className="w-full h-11 px-4 pr-9 bg-[#A6A6A6] text-gray-900 text-base appearance-none focus:outline-none cursor-pointer"
+                          className="w-full h-10 sm:h-11 px-2 sm:px-4 pr-6 sm:pr-9 bg-[#A6A6A6] text-gray-900 text-xs sm:text-base appearance-none focus:outline-none cursor-pointer"
                         >
                           <option value="">Día</option>
                           {DAYS.map((d) => (
@@ -219,7 +219,7 @@ function RegisterContent() {
                           fill="none"
                           stroke="currentColor"
                           strokeWidth="2"
-                          className="w-4 h-4 text-gray-900 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+                          className="w-4 h-4 text-gray-900 absolute right-2 sm:right-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
                         >
                           <polyline points="6 9 12 15 18 9" />
                         </svg>
@@ -230,7 +230,7 @@ function RegisterContent() {
                           required
                           value={birthMonth}
                           onChange={(e) => setBirthMonth(e.target.value)}
-                          className="w-full h-11 px-4 pr-9 bg-[#A6A6A6] text-gray-900 text-base appearance-none focus:outline-none cursor-pointer"
+                          className="w-full h-10 sm:h-11 px-2 sm:px-4 pr-6 sm:pr-9 bg-[#A6A6A6] text-gray-900 text-xs sm:text-base appearance-none focus:outline-none cursor-pointer"
                         >
                           <option value="">Mes</option>
                           {MONTHS.map((m) => (
@@ -244,7 +244,7 @@ function RegisterContent() {
                           fill="none"
                           stroke="currentColor"
                           strokeWidth="2"
-                          className="w-4 h-4 text-gray-900 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+                          className="w-4 h-4 text-gray-900 absolute right-2 sm:right-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
                         >
                           <polyline points="6 9 12 15 18 9" />
                         </svg>
@@ -255,7 +255,7 @@ function RegisterContent() {
                           required
                           value={birthYear}
                           onChange={(e) => setBirthYear(e.target.value)}
-                          className="w-full h-11 px-4 pr-9 bg-[#A6A6A6] text-gray-900 text-base appearance-none focus:outline-none cursor-pointer"
+                          className="w-full h-10 sm:h-11 px-2 sm:px-4 pr-6 sm:pr-9 bg-[#A6A6A6] text-gray-900 text-xs sm:text-base appearance-none focus:outline-none cursor-pointer"
                         >
                           <option value="">Año</option>
                           {YEARS.map((y) => (
@@ -269,7 +269,7 @@ function RegisterContent() {
                           fill="none"
                           stroke="currentColor"
                           strokeWidth="2"
-                          className="w-4 h-4 text-gray-900 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+                          className="w-4 h-4 text-gray-900 absolute right-2 sm:right-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
                         >
                           <polyline points="6 9 12 15 18 9" />
                         </svg>
@@ -277,8 +277,8 @@ function RegisterContent() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="block text-base font-normal text-gray-900">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <label className="block text-sm sm:text-base font-normal text-gray-900">
                       E-Mail
                     </label>
                     <input
@@ -286,11 +286,11 @@ function RegisterContent() {
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full h-9 px-3 bg-[#A6A6A6] text-gray-900 focus:bg-white focus:outline-none border border-transparent focus:border-[#134038]"
+                      className="w-full h-10 px-3 bg-[#A6A6A6] text-gray-900 focus:bg-white focus:outline-none border border-transparent focus:border-[#134038]"
                     />
                   </div>
 
-                  <div className="flex items-center justify-between pt-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3">
                     <button
                       type="button"
                       onClick={() => setMode('login')}
@@ -301,10 +301,10 @@ function RegisterContent() {
 
                     <button
                       type="submit"
-                      className="flex items-center gap-2 text-[#134038] hover:opacity-80 font-normal text-base transition-opacity cursor-pointer"
+                      className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#134038] hover:bg-[#0e2c26] text-white font-semibold text-sm transition-colors cursor-pointer min-h-[44px]"
                     >
                       <span>Continuar</span>
-                      <ArrowBackIcon className="w-6 h-6 text-[#134038] rotate-180" />
+                      <ArrowBackIcon className="w-5 h-5 text-white rotate-180" />
                     </button>
                   </div>
                 </form>

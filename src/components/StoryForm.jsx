@@ -206,10 +206,10 @@ export function StoryForm({ initialStory = null }) {
             <label className="block text-sm font-semibold text-gray-800">
               Personajes
             </label>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3">
               <Link
                 href="/characters/create"
-                className="h-10 px-4 bg-[#9E9E9E] hover:bg-[#8b8b8b] text-white text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer border border-gray-400"
+                className="h-10 px-4 bg-[#9E9E9E] hover:bg-[#8b8b8b] text-white text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer border border-gray-400 w-full sm:w-auto"
               >
                 <VectorPlusIcon className="w-4 h-4 text-white" />
                 <span>Agregar Nuevo</span>
@@ -218,7 +218,7 @@ export function StoryForm({ initialStory = null }) {
               <button
                 type="button"
                 onClick={() => setShowCharModal(true)}
-                className="h-10 px-4 bg-[#9E9E9E] hover:bg-[#8b8b8b] text-white text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer border border-gray-400"
+                className="h-10 px-4 bg-[#9E9E9E] hover:bg-[#8b8b8b] text-white text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer border border-gray-400 w-full sm:w-auto"
               >
                 <SearchIcon className="w-4 h-4 text-white" />
                 <span>Buscar en Personajes</span>
@@ -256,10 +256,10 @@ export function StoryForm({ initialStory = null }) {
             <label className="block text-sm font-semibold text-gray-800">
               Lugares
             </label>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3">
               <Link
                 href="/places/create"
-                className="h-10 px-4 bg-[#9E9E9E] hover:bg-[#8b8b8b] text-white text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer border border-gray-400"
+                className="h-10 px-4 bg-[#9E9E9E] hover:bg-[#8b8b8b] text-white text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer border border-gray-400 w-full sm:w-auto"
               >
                 <VectorPlusIcon className="w-4 h-4 text-white" />
                 <span>Agregar Nuevo</span>
@@ -268,7 +268,7 @@ export function StoryForm({ initialStory = null }) {
               <button
                 type="button"
                 onClick={() => setShowPlaceModal(true)}
-                className="h-10 px-4 bg-[#9E9E9E] hover:bg-[#8b8b8b] text-white text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer border border-gray-400"
+                className="h-10 px-4 bg-[#9E9E9E] hover:bg-[#8b8b8b] text-white text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer border border-gray-400 w-full sm:w-auto"
               >
                 <SearchIcon className="w-4 h-4 text-white" />
                 <span>Buscar en Lugares</span>

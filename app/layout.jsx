@@ -18,6 +18,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="es">
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
@@ -25,10 +26,10 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen bg-[#EFEFEF] text-[#1A1A1A] antialiased flex flex-col font-sans">
+      <body className="min-h-screen bg-[#EFEFEF] text-[#1A1A1A] antialiased flex flex-col font-sans overflow-x-hidden">
         <RootShelfProvider>
           <Header />
-          <main className="flex-1">
+          <main className="flex-1 w-full max-w-full overflow-x-hidden">
             {children}
           </main>
           <Footer />

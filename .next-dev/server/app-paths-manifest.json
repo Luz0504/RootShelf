@@ -1,7 +1,0 @@
-{
-  "/page": "app/page.js",
-  "/reader/[id]/page": "app/reader/[id]/page.js",
-  "/stories/[id]/chapters/create/page": "app/stories/[id]/chapters/create/page.js",
-  "/stories/[id]/chapters/[chapterId]/edit/page": "app/stories/[id]/chapters/[chapterId]/edit/page.js",
-  "/profile/page": "app/profile/page.js"
-}

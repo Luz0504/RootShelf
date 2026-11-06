@@ -252,11 +252,11 @@ export function CharacterForm({ initialCharacter = null }) {
             </label>
             <div className="space-y-1.5">
               <span className="text-xs text-gray-600 block">Padres</span>
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3">
                 <button
                   type="button"
                   onClick={() => setIsAddingParentText(!isAddingParentText)}
-                  className="h-10 px-4 bg-[#9E9E9E] hover:bg-[#8b8b8b] text-white text-xs font-semibold flex items-center gap-2 cursor-pointer border border-gray-400"
+                  className="h-10 px-4 bg-[#9E9E9E] hover:bg-[#8b8b8b] text-white text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer border border-gray-400 w-full sm:w-auto"
                 >
                   <VectorPlusIcon className="w-4 h-4 text-white" />
                   <span>Agregar Nuevo</span>
@@ -265,7 +265,7 @@ export function CharacterForm({ initialCharacter = null }) {
                 <button
                   type="button"
                   onClick={() => setShowParentSearch(true)}
-                  className="h-10 px-4 bg-[#9E9E9E] hover:bg-[#8b8b8b] text-white text-xs font-semibold flex items-center gap-2 cursor-pointer border border-gray-400"
+                  className="h-10 px-4 bg-[#9E9E9E] hover:bg-[#8b8b8b] text-white text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer border border-gray-400 w-full sm:w-auto"
                 >
                   <SearchIcon className="w-4 h-4 text-white" />
                   <span>Buscar en Personajes</span>

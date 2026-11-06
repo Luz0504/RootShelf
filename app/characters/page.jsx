@@ -51,13 +51,13 @@ export default function CharactersPage() {
         <span>Volver</span>
       </button>
 
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
           Personajes
         </h1>
         <Link
           href="/characters/create"
-          className="px-4 py-2 bg-[#A3195B] hover:bg-[#8e154f] text-white text-xs font-semibold uppercase tracking-wider flex items-center gap-2"
+          className="self-start sm:self-auto px-4 py-2 bg-[#A3195B] hover:bg-[#8e154f] text-white text-xs font-semibold uppercase tracking-wider flex items-center gap-2"
         >
           <VectorPlusIcon className="w-4 h-4 text-white" />
           <span>Nuevo Personaje</span>
@@ -65,11 +65,11 @@ export default function CharactersPage() {
       </div>
 
       {/* Folders Row */}
-      <div className="flex flex-wrap items-center gap-4">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-4">
         <button
           type="button"
           onClick={() => setSelectedFolderId(null)}
-          className={`h-11 px-6 font-semibold text-sm transition-colors border cursor-pointer ${
+          className={`h-9 sm:h-11 px-4 sm:px-6 font-semibold text-xs sm:text-sm transition-colors border cursor-pointer ${
             selectedFolderId === null
               ? 'bg-[#134038] text-white border-[#134038]'
               : 'bg-[#9E9E9E] text-gray-900 border-gray-400 hover:bg-[#8e8e8e]'

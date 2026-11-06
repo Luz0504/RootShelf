@@ -220,49 +220,50 @@ export function ChapterEditor({ storyId, chapterId = null, mode = 'create' }) {
   return (
     <div className="min-h-[calc(100vh-140px)] bg-[#EFEFEF] flex flex-col">
       {/* Top Bar / Navigation Header */}
-      <div className="bg-white border-b border-gray-300 sticky top-14 z-30 px-4 md:px-8 py-3 shadow-xs">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="bg-white border-b border-gray-300 sticky top-14 md:top-16 z-30 px-3 sm:px-4 md:px-8 py-2.5 sm:py-3 shadow-xs">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
           {/* Left: Volver + Story Context */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
               type="button"
               onClick={handleCancel}
-              className="flex items-center gap-1.5 text-gray-700 hover:text-[#A3195B] active:scale-95 font-semibold text-xs md:text-sm transition-all duration-150 cursor-pointer p-1"
+              className="flex items-center gap-1.5 text-gray-700 hover:text-[#A3195B] active:scale-95 font-semibold text-xs sm:text-sm transition-all duration-150 cursor-pointer p-1 shrink-0"
               title="Volver a la historia"
             >
               <ArrowBackIcon className="w-4 h-4 text-gray-700" />
-              <span>Volver a la historia</span>
+              <span className="hidden sm:inline">Volver a la historia</span>
+              <span className="sm:hidden">Volver</span>
             </button>
 
-            <span className="text-gray-300 hidden sm:inline" aria-hidden="true">|</span>
+            <span className="text-gray-300" aria-hidden="true">|</span>
 
             {/* Story Identification */}
-            <div className="flex items-center gap-2 overflow-hidden">
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 overflow-hidden">
               <span className="text-xs text-gray-500 font-medium hidden md:inline">Historia:</span>
-              <span className="text-xs font-bold text-[#134038] truncate max-w-[200px] sm:max-w-xs md:max-w-sm" title={story.title}>
+              <span className="text-xs font-bold text-[#134038] truncate max-w-[160px] sm:max-w-xs md:max-w-sm" title={story.title}>
                 {story.title}
               </span>
-              <span className="px-1.5 py-0.5 bg-[#134038]/10 text-[#134038] text-[10px] font-bold uppercase tracking-wider hidden lg:inline">
-                {mode === 'create' ? 'Nuevo Capítulo' : 'Editando'}
+              <span className="px-1.5 py-0.5 bg-[#134038]/10 text-[#134038] text-[10px] font-bold uppercase tracking-wider hidden sm:inline shrink-0">
+                {mode === 'create' ? 'Nuevo' : 'Editando'}
               </span>
             </div>
           </div>
 
           {/* Right: Counters & Action Buttons */}
-          <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 shrink-0">
+          <div className="flex items-center justify-between sm:justify-end gap-2.5 sm:gap-4 shrink-0">
             {/* Word & Status count */}
-            <div className="flex items-center gap-2 text-xs text-gray-600">
-              <span className="hidden md:inline font-medium">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-gray-600">
+              <span className="font-medium text-[11px] sm:text-xs">
                 {stats.words.toLocaleString()} {stats.words === 1 ? 'palabra' : 'palabras'}
               </span>
-              <span className="hidden lg:inline text-gray-400">•</span>
+              <span className="hidden sm:inline text-gray-400">•</span>
               {isDirty ? (
-                <span className="flex items-center gap-1 text-[#A3195B] font-semibold text-[11px] bg-[#A3195B]/10 px-2 py-0.5">
+                <span className="flex items-center gap-1 text-[#A3195B] font-semibold text-[10px] sm:text-[11px] bg-[#A3195B]/10 px-1.5 sm:px-2 py-0.5">
                   <span className="w-1.5 h-1.5 bg-[#A3195B] inline-block animate-pulse" />
                   Sin guardar
                 </span>
               ) : (
-                <span className="text-gray-500 text-[11px] font-medium hidden sm:inline">
+                <span className="text-gray-500 text-[10px] sm:text-[11px] font-medium hidden sm:inline">
                   ✓ Al día
                 </span>
               )}
@@ -272,7 +273,7 @@ export function ChapterEditor({ storyId, chapterId = null, mode = 'create' }) {
               <button
                 type="button"
                 onClick={handleCancel}
-                className="px-3.5 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-800 text-xs font-semibold active:scale-[0.98] transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F9B233]"
+                className="px-3 sm:px-3.5 py-1.5 sm:py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 text-xs font-semibold active:scale-[0.98] transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F9B233] min-h-[38px] flex items-center justify-center"
               >
                 Cancelar
               </button>
@@ -281,11 +282,11 @@ export function ChapterEditor({ storyId, chapterId = null, mode = 'create' }) {
                 type="button"
                 onClick={handleSave}
                 disabled={saveSuccess}
-                className={`px-5 py-1.5 text-white text-xs font-bold uppercase tracking-wider active:scale-[0.98] transition-all duration-150 cursor-pointer shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F9B233] ${
+                className={`px-3.5 sm:px-5 py-1.5 sm:py-2 text-white text-xs font-bold uppercase tracking-wider active:scale-[0.98] transition-all duration-150 cursor-pointer shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F9B233] min-h-[38px] flex items-center justify-center ${
                   saveSuccess ? 'bg-[#134038]' : 'bg-[#A3195B] hover:bg-[#8e154f]'
                 }`}
               >
-                {saveSuccess ? '✓ Guardado' : 'Guardar Capítulo'}
+                {saveSuccess ? '✓ Guardado' : 'Guardar'}
               </button>
             </div>
           </div>
@@ -293,24 +294,24 @@ export function ChapterEditor({ storyId, chapterId = null, mode = 'create' }) {
       </div>
 
       {/* Main Spacious Writing Canvas */}
-      <main className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 flex flex-col space-y-4">
+      <main className="flex-1 max-w-5xl mx-auto w-full px-3 sm:px-6 lg:px-8 py-4 sm:py-6 flex flex-col space-y-4">
         {/* Story Breadcrumb Banner */}
         <div className="flex items-center justify-between text-xs text-gray-600 border-b border-gray-300 pb-2">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-gray-800">{story.title}</span>
+          <div className="flex items-center gap-1.5 sm:gap-2 truncate">
+            <span className="font-semibold text-gray-800 truncate">{story.title}</span>
             <span className="text-gray-400">›</span>
-            <span className="text-gray-600">
+            <span className="text-gray-600 truncate">
               {mode === 'create' ? `Capítulo ${(story.chapters?.length || 0) + 1}` : existingChapter?.title || 'Capítulo'}
             </span>
           </div>
-          <span className="text-gray-500 text-[11px] hidden sm:inline">
+          <span className="text-gray-500 text-[11px] hidden sm:inline shrink-0">
             Tiempo est. de lectura: ~{stats.readTimeMinutes} min
           </span>
         </div>
 
         {/* Chapter Title Input */}
-        <div className="bg-white border border-gray-300 p-4 sm:p-6 shadow-xs space-y-1">
-          <label htmlFor="chapter-title" className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+        <div className="bg-white border border-gray-300 p-3 sm:p-5 md:p-6 shadow-xs space-y-1">
+          <label htmlFor="chapter-title" className="block text-[10px] sm:text-[11px] font-bold text-gray-500 uppercase tracking-wider">
             Título del Capítulo
           </label>
           <input
@@ -322,17 +323,17 @@ export function ChapterEditor({ storyId, chapterId = null, mode = 'create' }) {
               setIsDirty(true);
             }}
             placeholder="Ej: Capítulo 1: El despertar en la penumbra"
-            className="w-full text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 bg-transparent border-0 border-b-2 border-gray-200 focus:border-[#A3195B] focus:outline-none pb-1 transition-colors"
+            className="w-full text-lg sm:text-2xl md:text-3xl font-bold text-gray-900 bg-transparent border-0 border-b-2 border-gray-200 focus:border-[#A3195B] focus:outline-none pb-1 transition-colors"
           />
         </div>
 
         {/* Chapter Content Large Textarea */}
-        <div className="flex-1 flex flex-col bg-white border border-gray-300 p-4 sm:p-6 shadow-xs space-y-2 min-h-[550px] lg:min-h-[700px]">
+        <div className="flex-1 flex flex-col bg-white border border-gray-300 p-3 sm:p-5 md:p-6 shadow-xs space-y-2 min-h-[380px] sm:min-h-[520px] lg:min-h-[680px]">
           <div className="flex items-center justify-between border-b border-gray-200 pb-2">
-            <label htmlFor="chapter-content" className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+            <label htmlFor="chapter-content" className="block text-[10px] sm:text-[11px] font-bold text-gray-500 uppercase tracking-wider">
               Contenido del Capítulo
             </label>
-            <span className="text-[11px] text-gray-400">
+            <span className="text-[10px] sm:text-[11px] text-gray-400 hidden sm:inline">
               Tip: Presioná <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 text-[10px] font-mono text-gray-700">Ctrl + S</kbd> para guardar
             </span>
           </div>
@@ -345,8 +346,7 @@ export function ChapterEditor({ storyId, chapterId = null, mode = 'create' }) {
               setIsDirty(true);
             }}
             placeholder="Comenzá a escribir el texto de tu capítulo aquí. Tenés todo el espacio necesario para desarrollar diálogos, descripciones y narrativa..."
-            className="w-full flex-1 p-2 sm:p-3 bg-transparent border-0 text-gray-900 text-base sm:text-lg leading-relaxed font-serif focus:outline-none resize-none overflow-y-auto"
-            style={{ minHeight: '520px' }}
+            className="w-full flex-1 p-1.5 sm:p-3 bg-transparent border-0 text-gray-900 text-base sm:text-lg leading-relaxed font-serif focus:outline-none resize-none overflow-y-auto min-h-[340px] sm:min-h-[480px]"
           />
         </div>
 
