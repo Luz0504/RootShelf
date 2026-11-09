@@ -40,7 +40,7 @@ export function CharacterForm({ initialCharacter = null }) {
   const [showParentSearch, setShowParentSearch] = useState(false);
   const [isAddingParentText, setIsAddingParentText] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!firstName.trim()) return;
 
@@ -67,9 +67,9 @@ export function CharacterForm({ initialCharacter = null }) {
       const updated = characters.map((c) =>
         c.id === initialCharacter.id ? savedChar : c
       );
-      saveCharacters(updated);
+      await saveCharacters(updated);
     } else {
-      saveCharacters([...characters, savedChar]);
+      await saveCharacters([...characters, savedChar]);
     }
 
     router.push('/characters');

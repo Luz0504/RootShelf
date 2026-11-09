@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, Suspense } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useRootShelf } from '../../src/context/RootShelfContext';
@@ -32,16 +32,27 @@ function ProfileContent() {
     notes,
     saveNotes,
     isStoryOwner,
+    refreshFromSupabase,
   } = useRootShelf();
 
   const [currentTab, setCurrentTab] = useState(initialTab);
   const [workspaceSubTab, setWorkspaceSubTab] = useState('personajes');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isEditingStatus, setIsEditingStatus] = useState(false);
+  const [syncMessage, setSyncMessage] = useState(null);
+  const [isSyncing, setIsSyncing] = useState(false);
 
-  const [userName, setUserName] = useState(currentUser.username);
-  const [userBio, setUserBio] = useState(currentUser.bio);
-  const [userStatus, setUserStatus] = useState(currentUser.status);
+  const [userName, setUserName] = useState(currentUser?.username || '');
+  const [userBio, setUserBio] = useState(currentUser?.bio || '');
+  const [userStatus, setUserStatus] = useState(currentUser?.status || 'Disponible');
+
+  useEffect(() => {
+    if (currentUser) {
+      setUserName(currentUser.username || '');
+      setUserBio(currentUser.bio || '');
+      setUserStatus(currentUser.status || 'Disponible');
+    }
+  }, [currentUser]);
 
   // Notes state
   const [showNotesModal, setShowNotesModal] = useState(false);
@@ -107,7 +118,7 @@ function ProfileContent() {
   );
 
   const statusColor =
-    PRESET_STATUSES.find((s) => s.label === currentUser.status)?.color || '#A3195B';
+    PRESET_STATUSES.find((s) => s.label === currentUser?.status)?.color || '#A3195B';
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-8">
@@ -140,11 +151,11 @@ function ProfileContent() {
               className="w-28 h-28 md:w-36 md:h-36 bg-[#9E9E9E] hover:bg-[#8e8e8e] border border-gray-300 flex items-center justify-center shrink-0 cursor-pointer relative overflow-hidden group transition-colors"
               title="Hacer clic para agregar o cambiar foto de usuario"
             >
-              {currentUser.avatar ? (
+              {currentUser?.avatar ? (
                 <>
                   <img
                     src={currentUser.avatar}
-                    alt={currentUser.username}
+                    alt={currentUser?.username || 'Usuario'}
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 p-2 text-center">
@@ -251,7 +262,7 @@ function ProfileContent() {
                 <div className="space-y-1">
                   <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">
-                      {currentUser.username}
+                      {currentUser?.username || 'Usuario'}
                     </h1>
 
                     <div className="relative">
@@ -263,7 +274,7 @@ function ProfileContent() {
                         title="Cambiar estado"
                       >
                         <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                        <span>{currentUser.status}</span>
+                        <span>{currentUser?.status || 'Disponible'}</span>
                       </button>
 
                       {isEditingStatus && (
@@ -299,6 +310,28 @@ function ProfileContent() {
 
                     <button
                       type="button"
+                      disabled={isSyncing}
+                      onClick={async () => {
+                        setIsSyncing(true);
+                        setSyncMessage('Sincronizando...');
+                        try {
+                          await refreshFromSupabase(currentUser?.id);
+                          setSyncMessage('¡Datos sincronizados con Supabase!');
+                          setTimeout(() => setSyncMessage(null), 3500);
+                        } catch (e) {
+                          setSyncMessage('Error al sincronizar');
+                          setTimeout(() => setSyncMessage(null), 3000);
+                        } finally {
+                          setIsSyncing(false);
+                        }
+                      }}
+                      className="text-xs text-[#134038] hover:underline font-semibold cursor-pointer disabled:opacity-50"
+                    >
+                      {isSyncing ? 'Sincronizando...' : 'Sincronizar datos'}
+                    </button>
+
+                    <button
+                      type="button"
                       onClick={handleLogout}
                       className="text-xs text-[#A3195B] hover:underline font-semibold cursor-pointer sm:ml-auto"
                     >
@@ -306,8 +339,14 @@ function ProfileContent() {
                     </button>
                   </div>
 
+                  {syncMessage && (
+                    <div className="text-xs text-[#134038] bg-[#134038]/10 px-2.5 py-1 inline-block border-l-2 border-[#134038]">
+                      {syncMessage}
+                    </div>
+                  )}
+
                   <p className="text-sm text-gray-600 max-w-2xl leading-relaxed">
-                    {currentUser.bio}
+                    {currentUser?.bio || 'Lector y creador de historias en RootShelf.'}
                   </p>
                 </div>
               )}

@@ -62,7 +62,7 @@ export function ChapterEditor({ storyId, chapterId = null, mode = 'create' }) {
   }, [isDirty]);
 
   // Handle Save
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     if (!story) return;
     const finalTitle = title.trim() || (mode === 'create' ? `Capítulo ${(story.chapters?.length || 0) + 1}` : 'Capítulo sin título');
     const existingChapters = story.chapters || [];
@@ -102,7 +102,7 @@ export function ChapterEditor({ storyId, chapterId = null, mode = 'create' }) {
     };
 
     const updatedStories = stories.map((s) => (s.id === story.id ? updatedStory : s));
-    saveStories(updatedStories);
+    await saveStories(updatedStories);
 
     setIsDirty(false);
     setSaveSuccess(true);

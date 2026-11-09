@@ -31,7 +31,7 @@ export function PlaceForm({ initialPlace = null }) {
   const [isAddingLocationText, setIsAddingLocationText] = useState(false);
   const [isAddingAppearsInText, setIsAddingAppearsInText] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name.trim()) return;
 
@@ -49,9 +49,9 @@ export function PlaceForm({ initialPlace = null }) {
       const updated = places.map((p) =>
         p.id === initialPlace.id ? savedPlace : p
       );
-      savePlaces(updated);
+      await savePlaces(updated);
     } else {
-      savePlaces([...places, savedPlace]);
+      await savePlaces([...places, savedPlace]);
     }
 
     router.push('/places');

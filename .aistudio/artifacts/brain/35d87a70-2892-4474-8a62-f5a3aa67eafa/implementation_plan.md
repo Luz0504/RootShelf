@@ -1,141 +1,56 @@
-# Plan de Migración a Next.js (App Router), JavaScript y Tailwind CSS - RootShelf
+# Plan y Ejecución de Migración a Supabase (Etapa 2) - RootShelf
 
-Este documento define la arquitectura técnica y los pasos de ejecución para la migración de **RootShelf** desde la estructura previa de Vite/TypeScript a **Next.js (App Router)**, **JavaScript (.js / .jsx)** y **Tailwind CSS v4**, preservando todas las pantallas, funcionalidades, datos existentes y la identidad visual de la plataforma.
-
----
-
-## 1. Ajustes y Aclaraciones Fundamentales
-
-### 1.1 Cierre de Sesión y Navegación Inicial
-- **Ruta inicial:** La pantalla inicial al acceder a RootShelf es la **página principal (`/`) en modo visitante (invitado)**.
-- **Cierre de sesión:** Al pulsar "Cerrar sesión" en el menú o perfil, `rootshelf_session_active` se establece en `'false'` y el usuario es redirigido inmediatamente a la **página principal (`/`) en modo invitado**, sin redirigir a `/register`.
-
-### 1.2 Propiedad Confiable de las Historias
-- La autorización para editar historias se basa en un **identificador único de usuario (`userId` / `authorId`)**:
-  - Cada usuario tiene un `id` único (ej. `user_martin_01` para el autor por defecto o `user_<timestamp>` para nuevos registros).
-  - Cada historia almacena `authorId`.
-  - La comprobación `isStoryOwner(story)` valida rigurosamente:
-    ```javascript
-    Boolean(isAuthenticated && story && currentUserId && story.authorId === currentUserId)
-    ```
-  - Si un usuario navega en modo visitante o su `currentUserId` no coincide con el `story.authorId`, el botón **"Editar detalles de la historia"** no se muestra y el acceso a `/stories/[id]/edit` es bloqueado.
-
-### 1.3 Autenticación: Diferenciación entre Registro e Inicio de Sesión
-- Se implementan dos flujos claros e independientes en `/register`:
-  - **Iniciar sesión:** Permite a usuarios existentes autenticarse con su nombre de usuario/correo y contraseña, verificando las credenciales almacenadas o las de sesión predeterminada.
-  - **Registro de nuevo usuario:** Flujo en 2 pasos:
-    - **Paso 1:** Nombre, Apellido, Fecha de nacimiento (Día, Mes, Año), E-Mail.
-    - **Paso 2:** Nombre de usuario, Contraseña.
-    Crea el nuevo registro con un `userId` único y activa la sesión.
-  - Ambas opciones permiten alternar fácilmente mediante enlaces directos (*"¿No tenés cuenta? Registrate"* y *"¿Ya tenés cuenta? Iniciá sesión"*).
-
-### 1.4 Diseño Rectilíneo y Excepción para Avatares Circulares
-- La identidad rectilínea (`border-radius: 0px`) se mantiene en todos los botones, tarjetas, contenedores, inputs y modales.
-- Para no romper avatares u otros elementos que requieran explícitamente ser circulares, se aplica la excepción:
-  ```css
-  *, *::before, *::after {
-    border-radius: 0px !important;
-  }
-  .rounded-full, .rounded-full *, .avatar-circle, .avatar-circle * {
-    border-radius: 9999px !important;
-  }
-  ```
-
-### 1.5 Configuración Técnica de Tailwind CSS v4 y ESLint
-- **Tailwind CSS v4 en Next.js:** Integrado mediante `@tailwindcss/postcss` en `postcss.config.mjs` y `@import "tailwindcss";` en `app/globals.css`.
-- **ESLint:** Configuración con `eslint-config-next` (`next/core-web-vitals`), habilitando el script `"lint": "next lint"`.
-
-### 1.6 Preservación Retrocompatible de Datos en `localStorage`
-- Ningún dato previo será borrado ni reinicializado. Se conservan y respetan las claves existentes:
-  - `rootshelf_session_active`
-  - `rootshelf_user_id`
-  - `rootshelf_username`
-  - `rootshelf_userbio`
-  - `rootshelf_userstatus`
-  - `rootshelf_useravatar`
-  - `rootshelf_user_profile`
-  - `rootshelf_stories_data`
-  - `rootshelf_characters_data`
-  - `rootshelf_places_data`
-  - `rootshelf_objects_data`
-- Si ya existen historias u objetos guardados por el usuario, se cargan fielmente; los datos iniciales de `mockData.js` actúan únicamente como respaldo si el almacenamiento está vacío.
+Este documento registra la finalización de la **Etapa 2**, en la cual **Supabase se establece como la fuente principal y persistente de datos** para RootShelf, manteniendo `localStorage` como copia de seguridad sin pérdida de información.
 
 ---
 
-## 2. Arquitectura de Next.js App Router
+## 1. Conexión Real y Verificación del Esquema
+A partir de las credenciales configuradas en `.env.local` y `.env.example`:
+- **URL:** `https://eatfktsozlgbezpxxpus.supabase.co`
+- **Publishable Key:** `sb_publishable_B_ID07if8iUPEfKvOj0WFA_6cBnnylD`
 
-```
-app/
-├── globals.css                # Tokens (#134038, #A3195B, #F9B233, etc.) y reglas rectilíneas
-├── layout.jsx                 # Layout raíz con Google Fonts (Outfit), Header y RootShelfProvider
-├── page.jsx                   # '/' Catálogo principal y destacados (modo invitado por defecto)
-├── register/
-│   └── page.jsx               # '/register' Flujos de Iniciar sesión y Registro en 2 pasos
-├── profile/
-│   └── page.jsx               # '/profile' Lecturas, historias propias y taller literario
-├── reader/
-│   └── [id]/
-│       └── page.jsx           # '/reader/[id]' Lector de capítulos con validación de autor
-├── stories/
-│   ├── create/
-│   │   └── page.jsx           # '/stories/create' Creación de historias (requiere auth)
-│   └── [id]/
-│       └── edit/
-│           └── page.jsx       # '/stories/[id]/edit' Edición restringida al authorId
-├── characters/
-│   ├── page.jsx               # '/characters' Lista de personajes
-│   ├── create/
-│   │   └── page.jsx           # '/characters/create' Crear personaje
-│   └── [id]/
-│       └── edit/
-│           └── page.jsx       # '/characters/[id]/edit' Editar personaje
-├── places/
-│   ├── page.jsx               # '/places' Lista de lugares
-│   ├── create/
-│   │   └── page.jsx           # '/places/create' Crear lugar
-│   └── [id]/
-│       └── edit/
-│           └── page.jsx       # '/places/[id]/edit' Editar lugar
-└── objects/
-    ├── page.jsx               # '/objects' Lista de objetos
-    ├── create/
-    │   └── page.jsx           # '/objects/create' Crear objeto
-    └── [id]/
-        └── edit/
-            └── page.jsx       # '/objects/[id]/edit' Editar objeto
-```
+Se verificaron las 8 tablas existentes y sus columnas exactas en la base de datos de PostgreSQL/Supabase:
+1. `profiles`: `id`, `username`, `display_name`, `avatar_url`, `bio`, `status`, `created_at`, `updated_at`.
+2. `stories`: `id`, `author_id`, `title`, `synopsis`, `genre`, `status`, `tags` (array `text[]`), `cover_url`, `created_at`, `updated_at`.
+3. `chapters`: `id`, `story_id`, `chapter_number`, `title`, `content`, `created_at`, `updated_at`.
+4. `characters`: `id`, `author_id`, `story_id`, `name`, `role`, `description`, `personality`, `appearance`, `backstory`, `image_url`, `created_at`, `updated_at`.
+5. `places`: `id`, `author_id`, `story_id`, `name`, `place_type`, `description`, `image_url`, `created_at`, `updated_at`.
+6. `objects`: `id`, `author_id`, `story_id`, `name`, `category`, `description`, `properties`, `image_url`, `created_at`, `updated_at`.
+7. `favorites`: `id`, `user_id`, `story_id`, `created_at`.
+8. `reading_progress`: `id`, `user_id`, `story_id`, `chapter_id`, `last_read_at`, `created_at`, `updated_at`.
 
 ---
 
-## 3. Plan de Limpieza de Dependencias
-
-- **Eliminar de `package.json`:**
-  - `@google/genai` (no utilizado en el código de RootShelf).
-  - `express` y `@types/express` (obsoletos con Next.js).
-  - `dotenv` (gestionado nativamente por Next.js).
-  - `vite`, `@vitejs/plugin-react`, `@tailwindcss/vite` (sustituidos por Next.js y PostCSS).
-  - `typescript`, `tsx`, `@types/node`, `@types/react`, `@types/react-dom` (sustituidos por JavaScript puro).
-- **Instalar / Mantener:**
-  - `next`, `react`, `react-dom`
-  - `tailwindcss`, `@tailwindcss/postcss`, `postcss`
-  - `lucide-react`, `motion`
-  - `eslint`, `eslint-config-next`
+## 2. Estrategia de Preservación Total de Datos (Zero-Data-Loss)
+Para aquellos campos de formulario sin columna directa en Supabase, se implementó una codificación y deserialización transparente:
+- **Historias:**
+  - `description` mapea a `synopsis`.
+  - `isDraft` mapea a `status` (`'draft'` o `'published'`).
+  - `classification`, `language`, `characters` y `locations` vinculadas se almacenan dentro del array `tags` de PostgreSQL (ej. `__class:Todo público`, `__lang:Español`, `__chars:...`). Al leer la historia, se recuperan intactos en el modelo de RootShelf.
+- **Capítulos:**
+  - `number` mapea a `chapter_number`.
+  - `content` y `title` mapean de forma directa.
+- **Personajes:**
+  - `firstName` y `lastName` mapean a `name`.
+  - Los campos extendidos (`age`, `gender`, `birthDay`, `birthMonth`, `birthYear`, `relationships`/`parents`, `folderId`) se empaquetan en `backstory` en formato JSON y se reconstituyen al leer la entidad.
+- **Lugares:**
+  - `location` y `folderId` se preservan en `place_type`.
+- **Objetos:**
+  - `category` mapea a `category`.
+  - `location` y `folderId` se preservan en `properties`.
 
 ---
 
-## 4. Fases de Ejecución Inmediata
+## 3. Módulo de Migración Inteligente (`/src/lib/migration.js`)
+- **Deduplicación:** Antes de insertar cualquier historia, personaje, lugar u objeto, consulta los registros existentes del autor en Supabase para evitar duplicados.
+- **Asociación de Usuario:** Vincula todos los registros creados con el UUID de Supabase Auth del usuario activo (`author_id` / `user_id`).
+- **Marca de Migración:** Al completarse, guarda `rootshelf_migrated_${userId}` en `localStorage` con el resumen de registros transferidos para no repetir la importación en cada sesión.
+- **Respaldo:** No se elimina ninguna clave previa de `localStorage`; los datos locales se conservan como copia de seguridad.
 
-1. **Instalación y Configuración del Entorno Next.js**:
-   - Instalar `next`, `@tailwindcss/postcss`, `postcss`, `eslint-config-next`.
-   - Crear `next.config.mjs` y `postcss.config.mjs`.
-   - Actualizar `package.json` con scripts `"dev": "next dev -p 3000 -H 0.0.0.0"`, `"build": "next build"`, `"start": "next start -p 3000"`, `"lint": "next lint"`.
-2. **Migración a JavaScript Puro (.js / .jsx)**:
-   - Crear el contexto de aplicación `src/context/RootShelfContext.jsx` con protección de hidratación y manejo de sesión.
-   - Convertir componentes (`Header.jsx`, `Icons.jsx`, `AuthPromptModal.jsx`, `ImagePickerBox.jsx`).
-   - Crear las páginas en el App Router (`app/**/*.jsx`).
-   - Convertir datos y utilidades (`src/data/mockData.js`).
-3. **Eliminación de Archivos Obsoletos**:
-   - Borrar `tsconfig.json`, `vite.config.ts`, `index.html`, `src/main.tsx` y archivos `.ts`/`.tsx`.
-4. **Verificación y Compilación**:
-   - Ejecutar `compile_applet` para confirmar la compilación limpia con `next build`.
-   - Ejecutar `lint_applet` para comprobar `next lint`.
+---
+
+## 4. Reemplazo de Operaciones en el Contexto (`RootShelfContext.jsx`)
+- **Lecturas:** `refreshFromSupabase` consulta directamente Supabase como fuente primaria. Si el usuario navega como invitado, carga el catálogo público.
+- **Escrituras:** `saveStories`, `deleteStory`, `saveCharacters`, `deleteCharacter`, `savePlaces`, `deletePlace`, `saveObjects`, `deleteObject`, `toggleFavorite` y `updateReadingProgress` operan de forma asíncrona sobre Supabase.
+- **Componentes Actualizados:** `StoryForm.jsx`, `ChapterEditor.jsx`, `CharacterForm.jsx`, `PlaceForm.jsx`, `ObjectForm.jsx` y `Profile` ahora esperan (`await`) las operaciones asíncronas de guardado y actualizan el estado sin bloqueos.
+- **Control de Sincronización:** En la pantalla `/profile`, el usuario dispone de un botón *"Sincronizar datos"* con retroalimentación visual inmediata.

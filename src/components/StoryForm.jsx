@@ -58,7 +58,7 @@ export function StoryForm({ initialStory = null }) {
     setChapters(updated);
   };
 
-  const handleSubmit = (e, andWriteChapter = false) => {
+  const handleSubmit = async (e, andWriteChapter = false) => {
     if (e && e.preventDefault) e.preventDefault();
     if (!title.trim()) return;
 
@@ -81,7 +81,7 @@ export function StoryForm({ initialStory = null }) {
       const updatedStories = stories.map((s) =>
         s.id === initialStory.id ? updatedStory : s
       );
-      saveStories(updatedStories);
+      await saveStories(updatedStories);
 
       if (andWriteChapter) {
         router.push(`/stories/${initialStory.id}/chapters/create`);
@@ -94,8 +94,8 @@ export function StoryForm({ initialStory = null }) {
       const newStory = {
         id: newStoryId,
         title: title.trim(),
-        author: currentUser?.username || 'Martín Sueldo',
-        authorId: currentUser?.id || 'user_martin_01',
+        author: currentUser?.username || 'Usuario',
+        authorId: currentUser?.id || null,
         genre: genre.trim() || 'Ficción general',
         description: description.trim(),
         coverUrl,
@@ -111,7 +111,7 @@ export function StoryForm({ initialStory = null }) {
         chapters: chapters && chapters.length > 0 ? chapters : [],
       };
 
-      saveStories([...stories, newStory]);
+      await saveStories([...stories, newStory]);
 
       if (andWriteChapter) {
         router.push(`/stories/${newStoryId}/chapters/create`);

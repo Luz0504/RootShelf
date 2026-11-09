@@ -32,7 +32,7 @@ export function ObjectForm({ initialObject = null }) {
   const [isAddingLocationText, setIsAddingLocationText] = useState(false);
   const [isAddingAppearsInText, setIsAddingAppearsInText] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name.trim()) return;
 
@@ -50,9 +50,9 @@ export function ObjectForm({ initialObject = null }) {
       const updated = objects.map((o) =>
         o.id === initialObject.id ? savedObj : o
       );
-      saveObjects(updated);
+      await saveObjects(updated);
     } else {
-      saveObjects([...objects, savedObj]);
+      await saveObjects([...objects, savedObj]);
     }
 
     router.push('/objects');
