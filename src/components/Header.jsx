@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { useRootShelf } from '../context/RootShelfContext';
 import {
   BurgerMenuIcon,
-  FavoritesIcon,
   NotificationBellIcon,
   SearchIcon,
   UserIcon,
@@ -105,45 +104,8 @@ export function Header() {
           </form>
         </div>
 
-        {/* Right Actions: Premium, Favorites, Notifications & User profile */}
+        {/* Right Actions: Notifications & User profile */}
         <div className="flex items-center gap-1 sm:gap-2 md:gap-3 shrink-0">
-          {/* Premium Plan Link */}
-          {isAuthenticated && isPremium ? (
-            <Link
-              href="/profile?tab=plan"
-              className="hidden sm:flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-[#F9B233] to-[#e69f22] text-gray-950 font-bold text-xs uppercase tracking-wider shadow-xs hover:opacity-90 active:scale-95 transition-all cursor-pointer mr-1"
-              title="Tu plan RootShelf Premium está activo"
-            >
-              <span>★</span>
-              <span>Premium Activo</span>
-            </Link>
-          ) : (
-            <Link
-              href="/premium"
-              className="hidden sm:flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-[#F9B233] to-[#e69f22] text-gray-950 font-bold text-xs uppercase tracking-wider shadow-xs hover:opacity-90 active:scale-95 transition-all cursor-pointer mr-1"
-              title="Conocer RootShelf Premium"
-            >
-              <span>★</span>
-              <span>Premium</span>
-            </Link>
-          )}
-
-          {/* Favorites Button */}
-          <button
-            type="button"
-            onClick={() => {
-              if (!isAuthenticated) {
-                setShowAuthPrompt(true);
-              } else {
-                router.push('/profile?tab=leidos');
-              }
-            }}
-            className="w-10 h-10 flex items-center justify-center text-white hover:text-[#F9B233] hover:bg-white/5 active:scale-95 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F9B233] cursor-pointer"
-            title="Favoritos / Guardados"
-            aria-label="Favoritos"
-          >
-            <FavoritesIcon className="w-5 h-5" />
-          </button>
 
           {/* Notifications Button */}
           <div className="relative">
@@ -252,44 +214,6 @@ export function Header() {
 
             {/* Scrollable Drawer Body */}
             <div className="flex-1 overflow-y-auto divide-y divide-gray-200">
-              {/* SEARCH FIELD INSIDE MENU (as required: functional on mobile) */}
-              <div className="p-3.5 bg-gray-50">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
-                  Buscar en el Catálogo
-                </div>
-                <form onSubmit={handleSearchSubmit} className="relative flex items-center">
-                  <div className="absolute left-3 text-gray-500 pointer-events-none flex items-center">
-                    <SearchIcon className="w-4 h-4 text-gray-500" />
-                  </div>
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Buscar historias, autores..."
-                    className="w-full h-10 pl-9 pr-8 bg-white border border-gray-300 text-gray-900 placeholder-gray-500 text-sm focus:outline-none focus:border-[#134038] focus:ring-1 focus:ring-[#134038] transition-all"
-                  />
-                  {searchQuery && (
-                    <button
-                      type="button"
-                      onClick={() => setSearchQuery('')}
-                      className="absolute right-2.5 text-gray-400 hover:text-gray-700 text-xs font-bold p-1 cursor-pointer"
-                      title="Limpiar"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </form>
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={handleSearchSubmit}
-                    className="w-full mt-2 py-1.5 bg-[#134038] text-white text-xs font-semibold uppercase tracking-wider transition-colors hover:bg-[#0e2c26] cursor-pointer text-center"
-                  >
-                    Ver resultados para &ldquo;{searchQuery}&rdquo;
-                  </button>
-                )}
-              </div>
-
               {/* Main Navigation Links */}
               <nav className="p-3 space-y-1">
                 <div className="px-3 pt-1 pb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">
@@ -305,7 +229,6 @@ export function Header() {
                   className="w-full text-left px-3 py-2.5 text-sm font-semibold text-gray-800 hover:bg-[#EFEFEF] hover:text-[#A3195B] active:bg-gray-200 transition-colors cursor-pointer flex items-center justify-between"
                 >
                   <span>Inicio / Catálogo</span>
-                  <span className="text-xs text-gray-400">→</span>
                 </button>
 
                 <button
@@ -369,7 +292,6 @@ export function Header() {
                   className="w-full text-left px-3 py-2.5 text-sm font-semibold text-[#A3195B] hover:bg-[#A3195B]/10 active:bg-[#A3195B]/20 transition-colors cursor-pointer flex items-center justify-between"
                 >
                   <span>+ Crear Nueva Historia</span>
-                  <span className="text-xs">✨</span>
                 </button>
 
                 <button
@@ -479,17 +401,7 @@ export function Header() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsMenuOpen(false);
-                        router.push('/profile');
-                      }}
-                      className="py-2 px-1 bg-white border border-gray-300 hover:bg-gray-100 text-gray-800 text-[11px] font-semibold uppercase tracking-wider transition-colors cursor-pointer text-center truncate"
-                    >
-                      Perfil
-                    </button>
+                  <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
                       onClick={() => {

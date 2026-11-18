@@ -107,8 +107,12 @@ export async function POST(req) {
       currency: mpConfig.currency,
     });
   } catch (err) {
-    console.error('Error in POST /api/subscriptions/create:', err);
     const status = err?.status && err.status >= 400 && err.status < 600 ? err.status : 500;
+    if (status >= 500) {
+      console.error('Error in POST /api/subscriptions/create:', err);
+    } else {
+      console.warn('Validation error in POST /api/subscriptions/create:', err?.message);
+    }
     return NextResponse.json(
       { error: err?.message || 'Error al iniciar la suscripción con Mercado Pago.' },
       { status }

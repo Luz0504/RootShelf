@@ -98,13 +98,6 @@ export function Footer() {
           <p>© {new Date().getFullYear()} RootShelf. Todos los derechos reservados.</p>
           <div className="flex items-center gap-4">
             <Link
-              href="/"
-              className="hover:text-[#F9B233] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#F9B233]"
-            >
-              Inicio / Catálogo
-            </Link>
-            <span>•</span>
-            <Link
               href="/profile"
               className="hover:text-[#F9B233] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#F9B233]"
             >

@@ -10,7 +10,9 @@ export function getMercadoPagoConfig() {
   const currency = (process.env.MP_CURRENCY || 'ARS').trim().toUpperCase();
   const environment = (process.env.MP_ENVIRONMENT || 'test').trim().toLowerCase();
   const webhookSecret = (process.env.MP_WEBHOOK_SECRET || '').trim();
-  const testPayerEmail = (process.env.MP_TEST_PAYER_EMAIL || '').trim();
+  const testPayerEmail = (process.env.MP_TEST_PAYER_EMAIL || '')
+    .trim()
+    .replace(/^["']|["']$/g, '');
 
   if (!accessToken) {
     throw new Error('Falta configurar MP_ACCESS_TOKEN en el servidor.');
@@ -90,7 +92,22 @@ async function mpFetch(path, options = {}) {
       data?.error ||
       (Array.isArray(data?.cause) && data.cause[0]?.description) ||
       `HTTP ${res.status}`;
-    const err = new Error(`Mercado Pago API error: ${detail}`);
+
+    const detailLower = typeof detail === 'string' ? detail.toLowerCase() : '';
+    const isPayerCollectorMismatch = detailLower.includes(
+      'both payer and collector must be real or test users'
+    );
+    const isSameUserError = detailLower.includes(
+      'payer and collector cannot be the same user'
+    );
+
+    const friendlyMessage = isSameUserError
+      ? 'El correo pagador (MP_TEST_PAYER_EMAIL o tu email) no puede ser la misma cuenta de Mercado Pago que el vendedor (MP_ACCESS_TOKEN). Usá una segunda cuenta compradora de prueba (@testuser.com).'
+      : isPayerCollectorMismatch
+      ? 'En modo prueba de Mercado Pago, tanto el vendedor (MP_ACCESS_TOKEN) como el pagador deben ser cuentas de prueba (@testuser.com) distintas. Configurá MP_TEST_PAYER_EMAIL con una segunda cuenta compradora de prueba.'
+      : `Mercado Pago API error: ${detail}`;
+
+    const err = new Error(friendlyMessage);
     err.status = res.status;
     err.mpPayload = data;
     throw err;

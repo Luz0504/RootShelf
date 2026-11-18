@@ -33,35 +33,23 @@ function ProfileContent() {
     saveNotes,
     folders,
     isStoryOwner,
-    refreshFromSupabase,
-    subscription,
     planTier,
-    subscriptionStatus,
     isPremium,
     planLimits,
     allPlanLimits,
     isLoadingSubscription,
-    isRefreshingSubscription,
     subscriptionError,
     limitsError,
     refreshSubscription,
     retrySubscription,
     checkResourceLimit,
     openPlanLimitModal,
-    verifyMercadoPagoSubscription,
-    cancelMercadoPagoSubscription,
   } = useRootShelf();
 
   const [currentTab, setCurrentTab] = useState(initialTab);
   const [workspaceSubTab, setWorkspaceSubTab] = useState('personajes');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isEditingStatus, setIsEditingStatus] = useState(false);
-  const [syncMessage, setSyncMessage] = useState(null);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [showCancelSubConfirm, setShowCancelSubConfirm] = useState(false);
-  const [isCancelingSub, setIsCancelingSub] = useState(false);
-  const [isCheckingMpStatus, setIsCheckingMpStatus] = useState(false);
-  const [planActionNotice, setPlanActionNotice] = useState(null);
 
   const [userName, setUserName] = useState(currentUser?.username || '');
   const [userBio, setUserBio] = useState(currentUser?.bio || '');
@@ -376,40 +364,12 @@ function ProfileContent() {
 
                     <button
                       type="button"
-                      disabled={isSyncing}
-                      onClick={async () => {
-                        setIsSyncing(true);
-                        setSyncMessage('Sincronizando...');
-                        try {
-                          await refreshFromSupabase(currentUser?.id);
-                          setSyncMessage('¡Datos sincronizados con Supabase!');
-                          setTimeout(() => setSyncMessage(null), 3500);
-                        } catch (e) {
-                          setSyncMessage('Error al sincronizar');
-                          setTimeout(() => setSyncMessage(null), 3000);
-                        } finally {
-                          setIsSyncing(false);
-                        }
-                      }}
-                      className="text-xs text-[#134038] hover:underline font-semibold cursor-pointer disabled:opacity-50"
-                    >
-                      {isSyncing ? 'Sincronizando...' : 'Sincronizar datos'}
-                    </button>
-
-                    <button
-                      type="button"
                       onClick={handleLogout}
                       className="text-xs text-[#A3195B] hover:underline font-semibold cursor-pointer sm:ml-auto"
                     >
                       Cerrar sesión
                     </button>
                   </div>
-
-                  {syncMessage && (
-                    <div className="text-xs text-[#134038] bg-[#134038]/10 px-2.5 py-1 inline-block border-l-2 border-[#134038]">
-                      {syncMessage}
-                    </div>
-                  )}
 
                   <p className="text-sm text-gray-600 max-w-2xl leading-relaxed">
                     {currentUser?.bio || 'Lector y creador de historias en RootShelf.'}
@@ -950,257 +910,6 @@ function ProfileContent() {
                       </button>
                     </div>
                   )}
-
-                  {/* Subscription Action Notice */}
-                  {planActionNotice && (
-                    <div
-                      className={`p-4 border-l-4 flex items-start justify-between gap-3 text-xs ${
-                        planActionNotice.type === 'success'
-                          ? 'bg-emerald-50 border-[#134038] text-emerald-950'
-                          : planActionNotice.type === 'error'
-                          ? 'bg-red-50 border-[#A3195B] text-red-950'
-                          : 'bg-amber-50 border-[#F9B233] text-amber-950'
-                      }`}
-                    >
-                      <span>{planActionNotice.text}</span>
-                      <button
-                        type="button"
-                        onClick={() => setPlanActionNotice(null)}
-                        className="font-bold opacity-70 hover:opacity-100 cursor-pointer shrink-0"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Subscription Overview Card */}
-                  <div className="bg-white border border-gray-300 p-6 space-y-5">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-200">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs uppercase font-bold text-gray-500 tracking-wider">
-                            Suscripción actual
-                          </span>
-                          {isPremium ? (
-                            <span className="px-2 py-0.5 bg-[#F9B233] text-gray-950 text-[10px] font-bold uppercase tracking-wider">
-                              ★ Premium
-                            </span>
-                          ) : (
-                            <span className="px-2 py-0.5 bg-gray-200 text-gray-800 text-[10px] font-bold uppercase tracking-wider">
-                              Free
-                            </span>
-                          )}
-                          {subscription?.provider === 'mercadopago' && (
-                            <span className="px-2 py-0.5 bg-[#009EE3]/15 text-[#007eb5] text-[10px] font-bold uppercase tracking-wider">
-                              Mercado Pago
-                            </span>
-                          )}
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mt-1">
-                          {isPremium ? 'RootShelf Premium' : 'RootShelf Free'}
-                          {isPremium && subscription?.provider === 'mercadopago' && (
-                            <span className="text-sm font-semibold text-gray-600 ml-2">
-                              · $3.500 ARS / mes
-                            </span>
-                          )}
-                        </h3>
-                        {planTier === 'premium' && !isPremium && (
-                          <p className="text-xs text-amber-800 mt-1">
-                            Tu suscripción Premium figura con estado <strong>{subscriptionStatus}</strong>, por lo que aplican los límites del plan Free hasta que vuelva a estar activa.
-                          </p>
-                        )}
-                        {!isPremium && subscriptionStatus === 'canceled' && (
-                          <p className="text-xs text-gray-700 mt-1">
-                            Tu suscripción mensual fue cancelada. Todo tu contenido previo permanece intacto y editable, y aplican los límites del plan Free para nuevas creaciones.
-                          </p>
-                        )}
-                        {!isPremium && subscriptionStatus === 'past_due' && (
-                          <p className="text-xs text-amber-800 mt-1">
-                            El último cobro mensual en Mercado Pago falló o quedó pausado. Podés renovar tu suscripción desde la página de Premium sin perder tu contenido.
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-3">
-                        <div className="text-right">
-                          <div className="text-[10px] uppercase font-bold text-gray-500">Estado</div>
-                          <div
-                            className={`text-xs font-bold uppercase ${
-                              subscriptionStatus === 'active'
-                                ? 'text-green-700'
-                                : 'text-amber-700'
-                            }`}
-                          >
-                            {subscriptionStatus === 'active'
-                              ? 'Activa'
-                              : subscriptionStatus === 'canceled'
-                              ? 'Cancelada'
-                              : subscriptionStatus === 'past_due'
-                              ? 'Pago pendiente'
-                              : subscriptionStatus === 'expired'
-                              ? 'Expirada'
-                              : subscriptionStatus || '—'}
-                          </div>
-                        </div>
-                        {subscription?.last_payment_at && (
-                          <div className="text-right pl-3 border-l border-gray-200">
-                            <div className="text-[10px] uppercase font-bold text-gray-500">
-                              Último pago
-                            </div>
-                            <div className="text-xs text-gray-700 font-medium">
-                              {new Date(subscription.last_payment_at).toLocaleDateString('es-AR')}
-                            </div>
-                          </div>
-                        )}
-                        {(subscription?.next_payment_date || subscription?.current_period_end) && (
-                          <div className="text-right pl-3 border-l border-gray-200">
-                            <div className="text-[10px] uppercase font-bold text-gray-500">
-                              {subscription?.provider === 'mercadopago' && isPremium
-                                ? 'Próximo cobro'
-                                : 'Vence el'}
-                            </div>
-                            <div className="text-xs text-gray-700 font-medium">
-                              {new Date(
-                                subscription.next_payment_date || subscription.current_period_end
-                              ).toLocaleDateString('es-AR')}
-                            </div>
-                          </div>
-                        )}
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            setPlanActionNotice(null);
-                            if (subscription?.mp_preapproval_id) {
-                              setIsCheckingMpStatus(true);
-                              const res = await verifyMercadoPagoSubscription();
-                              setIsCheckingMpStatus(false);
-                              if (!res.success) {
-                                setPlanActionNotice({
-                                  type: 'error',
-                                  text: res.error || 'No se pudo consultar Mercado Pago.',
-                                });
-                              } else if (res.isActivePremium) {
-                                setPlanActionNotice({
-                                  type: 'success',
-                                  text: 'Estado sincronizado: RootShelf Premium activo en Mercado Pago.',
-                                });
-                              } else if (res.pendingVerification) {
-                                setPlanActionNotice({
-                                  type: 'info',
-                                  text: 'La suscripción sigue pendiente de confirmación en Mercado Pago.',
-                                });
-                              } else {
-                                setPlanActionNotice({
-                                  type: 'info',
-                                  text: `Estado verificado en Mercado Pago: ${res.mpStatus || 'sin cambios'}.`,
-                                });
-                              }
-                            } else {
-                              await refreshSubscription({ forceLoading: false });
-                            }
-                          }}
-                          disabled={isRefreshingSubscription || isCheckingMpStatus}
-                          className="px-3 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-800 text-xs font-semibold uppercase tracking-wider cursor-pointer disabled:opacity-50"
-                          title="Volver a consultar el estado real de tu suscripción"
-                        >
-                          {isRefreshingSubscription || isCheckingMpStatus
-                            ? 'Actualizando...'
-                            : 'Actualizar estado'}
-                        </button>
-                        {isPremium && subscription?.mp_preapproval_id && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setPlanActionNotice(null);
-                              setShowCancelSubConfirm((prev) => !prev);
-                            }}
-                            disabled={isCancelingSub}
-                            className="px-3 py-2 border border-red-300 bg-red-50 hover:bg-red-100 text-red-800 text-xs font-semibold uppercase tracking-wider cursor-pointer disabled:opacity-50"
-                          >
-                            Cancelar suscripción
-                          </button>
-                        )}
-                        <Link
-                          href="/premium"
-                          className="px-4 py-2 bg-[#A3195B] hover:bg-[#8e154f] text-white text-xs font-semibold uppercase tracking-wider cursor-pointer"
-                        >
-                          {isPremium ? 'Ver Detalles del Plan' : 'Actualizar a Premium'}
-                        </Link>
-                      </div>
-                    </div>
-
-                    {/* Inline Cancel Subscription Confirmation */}
-                    {showCancelSubConfirm && isPremium && subscription?.mp_preapproval_id && (
-                      <div className="p-4 bg-red-50 border border-red-300 space-y-3">
-                        <div className="space-y-1">
-                          <h4 className="text-sm font-bold text-red-950">
-                            ¿Confirmás la cancelación de RootShelf Premium?
-                          </h4>
-                          <p className="text-xs text-red-900 leading-relaxed">
-                            Se cancelará el débito automático mensual de $3.500 ARS en Mercado Pago y tu cuenta volverá al plan Free.{' '}
-                            <strong>
-                              Ninguna de tus historias, personajes, lugares, objetos, notas o carpetas será eliminada
-                            </strong>
-                            : todo tu contenido previo seguirá intacto y editable, aplicándose los límites del plan Free solo si querés crear elementos nuevos que superen ese cupo.
-                          </p>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-3">
-                          <button
-                            type="button"
-                            disabled={isCancelingSub}
-                            onClick={async () => {
-                              setIsCancelingSub(true);
-                              const res = await cancelMercadoPagoSubscription();
-                              setIsCancelingSub(false);
-                              if (!res.success) {
-                                setPlanActionNotice({
-                                  type: 'error',
-                                  text: res.error || 'No se pudo cancelar la suscripción.',
-                                });
-                              } else {
-                                setShowCancelSubConfirm(false);
-                                setPlanActionNotice({
-                                  type: 'success',
-                                  text: 'Suscripción cancelada en Mercado Pago. Tu cuenta volvió al plan Free y todo tu contenido sigue intacto.',
-                                });
-                              }
-                            }}
-                            className="px-4 py-2 bg-red-700 hover:bg-red-800 text-white text-xs font-bold uppercase tracking-wider cursor-pointer disabled:opacity-60"
-                          >
-                            {isCancelingSub ? 'Cancelando en Mercado Pago...' : 'Sí, cancelar suscripción'}
-                          </button>
-                          <button
-                            type="button"
-                            disabled={isCancelingSub}
-                            onClick={() => setShowCancelSubConfirm(false)}
-                            className="px-4 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-xs font-semibold uppercase tracking-wider cursor-pointer"
-                          >
-                            Mantener Premium
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Common Unrestricted Benefits */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#EFEFEF]/50 p-4 border border-gray-200">
-                      <div className="flex items-center gap-2.5 text-xs text-gray-800 font-medium">
-                        <span className="w-5 h-5 rounded-full bg-[#134038] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
-                          ✓
-                        </span>
-                        <span>
-                          <strong>Lectura libre e ilimitada</strong> de todo el catálogo público de historias.
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2.5 text-xs text-gray-800 font-medium">
-                        <span className="w-5 h-5 rounded-full bg-[#134038] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
-                          ✓
-                        </span>
-                        <span>
-                          <strong>Capítulos ilimitados</strong> para cada historia que crees en tu cuenta.
-                        </span>
-                      </div>
-                    </div>
-                  </div>
 
                   {/* Resource Limits & Usage Cards */}
                   <div className="space-y-3">
