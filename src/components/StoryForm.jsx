@@ -15,7 +15,13 @@ export function StoryForm({ initialStory = null }) {
     saveStories,
     characters,
     places,
+    checkResourceLimit,
+    openPlanLimitModal,
+    allPlanLimits,
   } = useRootShelf();
+
+  const storyLimit = checkResourceLimit('stories');
+  const premiumStoryLimit = allPlanLimits?.premium?.stories;
 
   const [title, setTitle] = useState(initialStory?.title || '');
   const [genre, setGenre] = useState(initialStory?.genre || '');
@@ -89,7 +95,13 @@ export function StoryForm({ initialStory = null }) {
         router.push(`/reader/${initialStory.id}`);
       }
     } else {
-      // Creating new story
+      // Creating new story: validate limit
+      const check = checkResourceLimit('stories');
+      if (!check.canCreate) {
+        openPlanLimitModal('stories');
+        return;
+      }
+
       const newStoryId = `story-${Date.now()}`;
       const newStory = {
         id: newStoryId,
@@ -111,7 +123,10 @@ export function StoryForm({ initialStory = null }) {
         chapters: chapters && chapters.length > 0 ? chapters : [],
       };
 
-      await saveStories([...stories, newStory]);
+      const res = await saveStories([...stories, newStory]);
+      if (res && res.limitReached) {
+        return;
+      }
 
       if (andWriteChapter) {
         router.push(`/stories/${newStoryId}/chapters/create`);
@@ -154,6 +169,34 @@ export function StoryForm({ initialStory = null }) {
       <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
         {initialStory ? 'Editar Detalles de la Historia' : 'Crear Nueva Historia'}
       </h1>
+
+      {!initialStory && !storyLimit.isLoading && !storyLimit.hasError && storyLimit.isAtLimit && (
+        <div className="bg-amber-50 border-l-4 border-[#A3195B] p-4 space-y-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <h4 className="text-sm font-bold text-gray-900">
+              Límite de historias alcanzado ({storyLimit.currentUsage} de {storyLimit.limit ?? '—'})
+            </h4>
+            {!storyLimit.isPremium && (
+              <Link
+                href="/premium"
+                className="px-3 py-1 bg-[#A3195B] hover:bg-[#8e154f] text-white text-xs font-bold uppercase tracking-wider self-start sm:self-auto"
+              >
+                Subir a Premium
+              </Link>
+            )}
+          </div>
+          <p className="text-xs text-gray-700 leading-relaxed">
+            Tu plan {storyLimit.isPremium ? 'Premium' : 'Free'} permite hasta {storyLimit.limit ?? '—'} historias creadas.{' '}
+            {storyLimit.isPremium
+              ? 'Para publicar una nueva historia podés eliminar alguna anterior.'
+              : `Para publicar una nueva historia podés eliminar alguna anterior o actualizar a Premium${
+                  typeof premiumStoryLimit === 'number'
+                    ? ` para obtener hasta ${premiumStoryLimit} historias`
+                    : ''
+                }.`}
+          </p>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Form: 7 columns */}
@@ -455,17 +498,25 @@ export function StoryForm({ initialStory = null }) {
           <div className="pt-4 space-y-2">
             <button
               type="button"
+              disabled={!initialStory && (storyLimit.isAtLimit || storyLimit.isLoading)}
               onClick={(e) => handleSubmit(e, !initialStory)}
-              className="w-full py-3 bg-[#A3195B] hover:bg-[#8e154f] active:scale-[0.98] text-white font-bold text-sm uppercase tracking-wider transition-all duration-150 cursor-pointer shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F9B233]"
+              className="w-full py-3 bg-[#A3195B] hover:bg-[#8e154f] disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] text-white font-bold text-sm uppercase tracking-wider transition-all duration-150 cursor-pointer shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F9B233]"
             >
-              {initialStory ? 'Guardar Cambios de la Historia' : 'Guardar y Redactar Primer Capítulo'}
+              {initialStory
+                ? 'Guardar Cambios de la Historia'
+                : storyLimit.isLoading
+                ? 'Verificando plan...'
+                : storyLimit.isAtLimit
+                ? 'Límite de Historias Alcanzado'
+                : 'Guardar y Redactar Primer Capítulo'}
             </button>
 
             {!initialStory && (
               <button
                 type="button"
+                disabled={storyLimit.isAtLimit || storyLimit.isLoading}
                 onClick={(e) => handleSubmit(e, false)}
-                className="w-full py-2.5 bg-white border border-gray-400 hover:bg-gray-100 active:scale-[0.98] text-gray-800 font-semibold text-xs uppercase tracking-wider transition-all duration-150 cursor-pointer"
+                className="w-full py-2.5 bg-white border border-gray-400 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] text-gray-800 font-semibold text-xs uppercase tracking-wider transition-all duration-150 cursor-pointer"
               >
                 Guardar historia como borrador
               </button>

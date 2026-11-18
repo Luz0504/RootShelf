@@ -22,6 +22,10 @@ export function Header() {
     setShowAuthPrompt,
     searchQuery,
     setSearchQuery,
+    isPremium,
+    planTier,
+    isLoadingSubscription,
+    subscriptionError,
   } = useRootShelf();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -101,8 +105,29 @@ export function Header() {
           </form>
         </div>
 
-        {/* Right Actions: Favorites, Notifications & User profile */}
+        {/* Right Actions: Premium, Favorites, Notifications & User profile */}
         <div className="flex items-center gap-1 sm:gap-2 md:gap-3 shrink-0">
+          {/* Premium Plan Link */}
+          {isAuthenticated && isPremium ? (
+            <Link
+              href="/profile?tab=plan"
+              className="hidden sm:flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-[#F9B233] to-[#e69f22] text-gray-950 font-bold text-xs uppercase tracking-wider shadow-xs hover:opacity-90 active:scale-95 transition-all cursor-pointer mr-1"
+              title="Tu plan RootShelf Premium está activo"
+            >
+              <span>★</span>
+              <span>Premium Activo</span>
+            </Link>
+          ) : (
+            <Link
+              href="/premium"
+              className="hidden sm:flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-[#F9B233] to-[#e69f22] text-gray-950 font-bold text-xs uppercase tracking-wider shadow-xs hover:opacity-90 active:scale-95 transition-all cursor-pointer mr-1"
+              title="Conocer RootShelf Premium"
+            >
+              <span>★</span>
+              <span>Premium</span>
+            </Link>
+          )}
+
           {/* Favorites Button */}
           <button
             type="button"
@@ -299,6 +324,29 @@ export function Header() {
                   <span>Favoritos y Leídos</span>
                   {!isAuthenticated && <span className="text-[10px] text-gray-400">🔒</span>}
                 </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    router.push('/premium');
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2.5 text-sm font-bold text-[#134038] hover:bg-[#F9B233]/20 active:bg-[#F9B233]/30 transition-colors cursor-pointer flex items-center justify-between"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span className="text-[#F9B233]">★</span>
+                    <span>RootShelf Premium</span>
+                  </span>
+                  {isAuthenticated && isPremium ? (
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-gray-950 bg-[#F9B233] px-2 py-0.5">
+                      Activo
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-white bg-[#A3195B] px-2 py-0.5">
+                      Planes
+                    </span>
+                  )}
+                </button>
               </nav>
 
               {/* Writing & Workspace Section */}
@@ -403,8 +451,27 @@ export function Header() {
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs font-bold text-gray-900 truncate">
-                        {currentUser.username}
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-gray-900 truncate">
+                          {currentUser.username}
+                        </span>
+                        {isLoadingSubscription && !planTier ? (
+                          <span className="px-1.5 py-0.5 bg-gray-200 text-gray-600 text-[9px] font-semibold uppercase tracking-wider shrink-0">
+                            ...
+                          </span>
+                        ) : subscriptionError ? (
+                          <span className="px-1.5 py-0.5 bg-amber-100 text-amber-800 text-[9px] font-semibold uppercase tracking-wider shrink-0">
+                            !
+                          </span>
+                        ) : isPremium ? (
+                          <span className="px-1.5 py-0.5 bg-[#F9B233] text-gray-950 text-[9px] font-bold uppercase tracking-wider shrink-0">
+                            ★ Premium
+                          </span>
+                        ) : (
+                          <span className="px-1.5 py-0.5 bg-gray-200 text-gray-700 text-[9px] font-semibold uppercase tracking-wider shrink-0">
+                            Free
+                          </span>
+                        )}
                       </div>
                       <div className="text-[11px] text-gray-500 truncate">
                         {currentUser.status || 'En línea'}
@@ -412,21 +479,31 @@ export function Header() {
                     </div>
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="grid grid-cols-3 gap-2">
                     <button
                       type="button"
                       onClick={() => {
                         setIsMenuOpen(false);
                         router.push('/profile');
                       }}
-                      className="flex-1 py-2 px-2 bg-white border border-gray-300 hover:bg-gray-100 text-gray-800 text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer text-center"
+                      className="py-2 px-1 bg-white border border-gray-300 hover:bg-gray-100 text-gray-800 text-[11px] font-semibold uppercase tracking-wider transition-colors cursor-pointer text-center truncate"
                     >
-                      Mi Perfil
+                      Perfil
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        router.push('/profile?tab=plan');
+                      }}
+                      className="py-2 px-1 bg-white border border-[#134038] text-[#134038] hover:bg-[#134038]/10 text-[11px] font-bold uppercase tracking-wider transition-colors cursor-pointer text-center truncate"
+                    >
+                      Mi Plan
                     </button>
                     <button
                       type="button"
                       onClick={handleLogout}
-                      className="py-2 px-3 bg-[#A3195B] hover:bg-[#8d144e] active:scale-[0.98] text-white text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer text-center"
+                      className="py-2 px-1 bg-[#A3195B] hover:bg-[#8d144e] active:scale-[0.98] text-white text-[11px] font-semibold uppercase tracking-wider transition-colors cursor-pointer text-center truncate"
                     >
                       Salir
                     </button>

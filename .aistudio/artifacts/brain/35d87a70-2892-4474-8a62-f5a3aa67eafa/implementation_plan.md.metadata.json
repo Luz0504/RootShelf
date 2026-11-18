@@ -1,6 +1,0 @@
-{
-  "summary": "Documentación de la Etapa 2 de migración de localStorage a Supabase en RootShelf, detallando la correspondencia exacta de columnas, el módulo de migración sin duplicados, el respaldo local y la asincronía en formularios y perfiles.",
-  "updatedAt": "2026-11-06T21:29:26.126548410Z",
-  "requestFeedback": true,
-  "userFacing": true
-}

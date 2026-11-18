@@ -3,6 +3,7 @@ import { RootShelfProvider } from '../src/context/RootShelfContext';
 import { Header } from '../src/components/Header';
 import { Footer } from '../src/components/Footer';
 import { AuthPromptModal } from '../src/components/AuthPromptModal';
+import { PlanLimitModal } from '../src/components/PlanLimitModal';
 
 export const metadata = {
   title: 'RootShelf - Lectura y Creación de Historias',
@@ -34,6 +35,7 @@ export default function RootLayout({ children }) {
           </main>
           <Footer />
           <AuthPromptModal />
+          <PlanLimitModal />
         </RootShelfProvider>
       </body>
     </html>

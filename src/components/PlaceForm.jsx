@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useRootShelf } from '../context/RootShelfContext';
 import { ArrowBackIcon, VectorPlusIcon, SearchIcon } from './Icons';
@@ -13,8 +14,13 @@ export function PlaceForm({ initialPlace = null }) {
     places,
     savePlaces,
     stories,
+    checkResourceLimit,
+    openPlanLimitModal,
+    allPlanLimits,
   } = useRootShelf();
 
+  const placeLimit = checkResourceLimit('places');
+  const premiumPlaceLimit = allPlanLimits?.premium?.places;
   const placeFolders = folders.filter((f) => f.type === 'places');
 
   const [name, setName] = useState(initialPlace?.name || '');
@@ -35,6 +41,14 @@ export function PlaceForm({ initialPlace = null }) {
     e.preventDefault();
     if (!name.trim()) return;
 
+    if (!initialPlace) {
+      const check = checkResourceLimit('places');
+      if (!check.canCreate) {
+        openPlanLimitModal('places');
+        return;
+      }
+    }
+
     const savedPlace = {
       id: initialPlace?.id || `place-${Date.now()}`,
       name: name.trim(),
@@ -51,7 +65,8 @@ export function PlaceForm({ initialPlace = null }) {
       );
       await savePlaces(updated);
     } else {
-      await savePlaces([...places, savedPlace]);
+      const res = await savePlaces([...places, savedPlace]);
+      if (res && res.limitReached) return;
     }
 
     router.push('/places');
@@ -79,6 +94,34 @@ export function PlaceForm({ initialPlace = null }) {
       <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
         {initialPlace ? 'Editar lugar' : 'Lugar nuevo'}
       </h1>
+
+      {!initialPlace && !placeLimit.isLoading && !placeLimit.hasError && placeLimit.isAtLimit && (
+        <div className="bg-amber-50 border-l-4 border-[#A3195B] p-4 space-y-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <h4 className="text-sm font-bold text-gray-900">
+              Límite de lugares alcanzado ({placeLimit.currentUsage} de {placeLimit.limit ?? '—'})
+            </h4>
+            {!placeLimit.isPremium && (
+              <Link
+                href="/premium"
+                className="px-3 py-1 bg-[#A3195B] hover:bg-[#8e154f] text-white text-xs font-bold uppercase tracking-wider self-start sm:self-auto"
+              >
+                Subir a Premium
+              </Link>
+            )}
+          </div>
+          <p className="text-xs text-gray-700 leading-relaxed">
+            Tu plan {placeLimit.isPremium ? 'Premium' : 'Free'} permite hasta {placeLimit.limit ?? '—'} lugares creados.{' '}
+            {placeLimit.isPremium
+              ? 'Para agregar más podés liberar espacio eliminando anteriores.'
+              : `Para agregar más podés liberar espacio eliminando anteriores o actualizar a Premium${
+                  typeof premiumPlaceLimit === 'number'
+                    ? ` para obtener hasta ${premiumPlaceLimit} lugares`
+                    : ''
+                }.`}
+          </p>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Column: 7 cols */}
@@ -222,9 +265,16 @@ export function PlaceForm({ initialPlace = null }) {
           <div className="pt-4">
             <button
               type="submit"
-              className="w-full py-3 bg-[#A3195B] hover:bg-[#8e154f] text-white font-bold text-sm uppercase tracking-wider transition-colors cursor-pointer"
+              disabled={!initialPlace && (placeLimit.isAtLimit || placeLimit.isLoading)}
+              className="w-full py-3 bg-[#A3195B] hover:bg-[#8e154f] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm uppercase tracking-wider transition-colors cursor-pointer"
             >
-              {initialPlace ? 'Guardar Cambios' : 'Guardar Lugar'}
+              {initialPlace
+                ? 'Guardar Cambios'
+                : placeLimit.isLoading
+                ? 'Verificando plan...'
+                : placeLimit.isAtLimit
+                ? 'Límite de Lugares Alcanzado'
+                : 'Guardar Lugar'}
             </button>
           </div>
         </div>

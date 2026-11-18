@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useRootShelf } from '../context/RootShelfContext';
 import { ArrowBackIcon, VectorPlusIcon, SearchIcon } from './Icons';
@@ -12,8 +13,13 @@ export function CharacterForm({ initialCharacter = null }) {
     folders,
     characters,
     saveCharacters,
+    checkResourceLimit,
+    openPlanLimitModal,
+    allPlanLimits,
   } = useRootShelf();
 
+  const characterLimit = checkResourceLimit('characters');
+  const premiumCharLimit = allPlanLimits?.premium?.characters;
   const characterFolders = folders.filter((f) => f.type === 'characters');
 
   const [firstName, setFirstName] = useState(initialCharacter?.firstName || '');
@@ -44,6 +50,14 @@ export function CharacterForm({ initialCharacter = null }) {
     e.preventDefault();
     if (!firstName.trim()) return;
 
+    if (!initialCharacter) {
+      const check = checkResourceLimit('characters');
+      if (!check.canCreate) {
+        openPlanLimitModal('characters');
+        return;
+      }
+    }
+
     const savedChar = {
       id: initialCharacter?.id || `char-${Date.now()}`,
       firstName: firstName.trim(),
@@ -69,7 +83,8 @@ export function CharacterForm({ initialCharacter = null }) {
       );
       await saveCharacters(updated);
     } else {
-      await saveCharacters([...characters, savedChar]);
+      const res = await saveCharacters([...characters, savedChar]);
+      if (res && res.limitReached) return;
     }
 
     router.push('/characters');
@@ -97,6 +112,34 @@ export function CharacterForm({ initialCharacter = null }) {
       <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
         {initialCharacter ? 'Editar personaje' : 'Personaje nuevo'}
       </h1>
+
+      {!initialCharacter && !characterLimit.isLoading && !characterLimit.hasError && characterLimit.isAtLimit && (
+        <div className="bg-amber-50 border-l-4 border-[#A3195B] p-4 space-y-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <h4 className="text-sm font-bold text-gray-900">
+              Límite de personajes alcanzado ({characterLimit.currentUsage} de {characterLimit.limit ?? '—'})
+            </h4>
+            {!characterLimit.isPremium && (
+              <Link
+                href="/premium"
+                className="px-3 py-1 bg-[#A3195B] hover:bg-[#8e154f] text-white text-xs font-bold uppercase tracking-wider self-start sm:self-auto"
+              >
+                Subir a Premium
+              </Link>
+            )}
+          </div>
+          <p className="text-xs text-gray-700 leading-relaxed">
+            Tu plan {characterLimit.isPremium ? 'Premium' : 'Free'} permite hasta {characterLimit.limit ?? '—'} personajes.{' '}
+            {characterLimit.isPremium
+              ? 'Para agregar más podés liberar espacio eliminando anteriores.'
+              : `Para agregar más podés liberar espacio eliminando anteriores o actualizar a Premium${
+                  typeof premiumCharLimit === 'number'
+                    ? ` para obtener hasta ${premiumCharLimit} personajes`
+                    : ''
+                }.`}
+          </p>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left column: 7 cols */}
@@ -303,9 +346,16 @@ export function CharacterForm({ initialCharacter = null }) {
           <div className="pt-4">
             <button
               type="submit"
-              className="w-full py-3 bg-[#A3195B] hover:bg-[#8e154f] text-white font-bold text-sm uppercase tracking-wider transition-colors cursor-pointer"
+              disabled={!initialCharacter && (characterLimit.isAtLimit || characterLimit.isLoading)}
+              className="w-full py-3 bg-[#A3195B] hover:bg-[#8e154f] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm uppercase tracking-wider transition-colors cursor-pointer"
             >
-              {initialCharacter ? 'Guardar Cambios' : 'Guardar Personaje'}
+              {initialCharacter
+                ? 'Guardar Cambios'
+                : characterLimit.isLoading
+                ? 'Verificando plan...'
+                : characterLimit.isAtLimit
+                ? 'Límite de Personajes Alcanzado'
+                : 'Guardar Personaje'}
             </button>
           </div>
         </div>

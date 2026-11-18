@@ -31,8 +31,25 @@ function ProfileContent() {
     objects,
     notes,
     saveNotes,
+    folders,
     isStoryOwner,
     refreshFromSupabase,
+    subscription,
+    planTier,
+    subscriptionStatus,
+    isPremium,
+    planLimits,
+    allPlanLimits,
+    isLoadingSubscription,
+    isRefreshingSubscription,
+    subscriptionError,
+    limitsError,
+    refreshSubscription,
+    retrySubscription,
+    checkResourceLimit,
+    openPlanLimitModal,
+    verifyMercadoPagoSubscription,
+    cancelMercadoPagoSubscription,
   } = useRootShelf();
 
   const [currentTab, setCurrentTab] = useState(initialTab);
@@ -41,10 +58,27 @@ function ProfileContent() {
   const [isEditingStatus, setIsEditingStatus] = useState(false);
   const [syncMessage, setSyncMessage] = useState(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [showCancelSubConfirm, setShowCancelSubConfirm] = useState(false);
+  const [isCancelingSub, setIsCancelingSub] = useState(false);
+  const [isCheckingMpStatus, setIsCheckingMpStatus] = useState(false);
+  const [planActionNotice, setPlanActionNotice] = useState(null);
 
   const [userName, setUserName] = useState(currentUser?.username || '');
   const [userBio, setUserBio] = useState(currentUser?.bio || '');
   const [userStatus, setUserStatus] = useState(currentUser?.status || 'Disponible');
+
+  const tabParam = searchParams.get('tab');
+  useEffect(() => {
+    if (tabParam && ['leidos', 'escritos', 'trabajo', 'plan'].includes(tabParam)) {
+      setCurrentTab(tabParam);
+    }
+  }, [tabParam]);
+
+  useEffect(() => {
+    if (isAuthenticated && currentTab === 'plan') {
+      refreshSubscription({ silent: true });
+    }
+  }, [isAuthenticated, currentTab, refreshSubscription]);
 
   useEffect(() => {
     if (currentUser) {
@@ -265,6 +299,38 @@ function ProfileContent() {
                       {currentUser?.username || 'Usuario'}
                     </h1>
 
+                    {isLoadingSubscription && !planTier ? (
+                      <span className="px-2.5 py-0.5 bg-gray-100 text-gray-500 text-[11px] font-semibold uppercase tracking-wider">
+                        Verificando plan...
+                      </span>
+                    ) : subscriptionError ? (
+                      <button
+                        type="button"
+                        onClick={() => setCurrentTab('plan')}
+                        className="px-2.5 py-0.5 bg-amber-100 hover:bg-amber-200 text-amber-900 text-[11px] font-semibold uppercase tracking-wider cursor-pointer"
+                        title="No se pudo verificar el estado de tu plan"
+                      >
+                        Plan sin verificar
+                      </button>
+                    ) : isPremium ? (
+                      <Link
+                        href="/premium"
+                        className="px-2.5 py-0.5 bg-gradient-to-r from-[#F9B233] to-[#e59f23] text-gray-900 text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 shadow-xs hover:opacity-90"
+                      >
+                        <span>★</span>
+                        <span>Premium</span>
+                      </Link>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setCurrentTab('plan')}
+                        className="px-2.5 py-0.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-[11px] font-semibold uppercase tracking-wider cursor-pointer"
+                        title="Ver detalles de tu plan Free"
+                      >
+                        Plan Free
+                      </button>
+                    )}
+
                     <div className="relative">
                       <button
                         type="button"
@@ -413,6 +479,27 @@ function ProfileContent() {
           }`}
         >
           Área de Trabajo
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setCurrentTab('plan')}
+          className={`py-3 px-4 text-sm font-bold uppercase tracking-wider transition-colors cursor-pointer border-b-2 whitespace-nowrap ${
+            currentTab === 'plan'
+              ? 'border-[#A3195B] text-[#A3195B]'
+              : 'border-transparent text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          Mi Plan{' '}
+          {!isAuthenticated
+            ? ''
+            : isLoadingSubscription && !planTier
+            ? ''
+            : subscriptionError
+            ? '(!)'
+            : isPremium
+            ? '★ Premium'
+            : '(Free)'}
         </button>
       </div>
 
@@ -795,6 +882,526 @@ function ProfileContent() {
         </div>
       )}
 
+      {/* Tab 4: Mi Plan */}
+      {currentTab === 'plan' && (
+        <div className="space-y-6">
+          {!isAuthenticated ? (
+            <div className="bg-white border border-gray-300 p-12 text-center space-y-4">
+              <UserIcon className="w-12 h-12 mx-auto text-gray-400" />
+              <h3 className="text-lg font-bold text-gray-900">
+                Información de suscripción privada
+              </h3>
+              <p className="text-sm text-gray-600 max-w-md mx-auto">
+                Iniciá sesión para consultar el estado de tu plan, tus límites de creación y el uso de tu cuenta.
+              </p>
+              <button
+                type="button"
+                onClick={() => router.push('/register')}
+                className="px-6 py-2.5 bg-[#A3195B] hover:bg-[#8e154f] text-white text-xs font-semibold uppercase tracking-wider cursor-pointer"
+              >
+                Iniciar sesión
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Loading state while verifying subscription */}
+              {isLoadingSubscription && !planTier ? (
+                <div className="bg-white border border-gray-300 p-8 text-center space-y-3">
+                  <div className="inline-block w-6 h-6 border-2 border-[#134038] border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-semibold text-gray-800">
+                    Consultando el estado de tu suscripción en Supabase...
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Esto tomará solo un momento.
+                  </p>
+                </div>
+              ) : subscriptionError ? (
+                <div className="bg-amber-50 border-l-4 border-amber-600 p-6 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <h4 className="text-base font-bold text-amber-900">
+                      No se pudo verificar tu suscripción
+                    </h4>
+                    <button
+                      type="button"
+                      onClick={retrySubscription}
+                      disabled={isLoadingSubscription}
+                      className="px-4 py-2 bg-amber-700 hover:bg-amber-800 text-white text-xs font-semibold uppercase tracking-wider cursor-pointer disabled:opacity-50 self-start sm:self-auto"
+                    >
+                      {isLoadingSubscription ? 'Reintentando...' : 'Reintentar'}
+                    </button>
+                  </div>
+                  <p className="text-xs text-amber-800 leading-relaxed">
+                    Ocurrió un problema al consultar tu suscripción en Supabase ({subscriptionError}).
+                    No podemos confirmar el plan activo en este momento. Hacé clic en Reintentar para volver a consultar.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {/* Error banner if plan limits query failed */}
+                  {limitsError && (
+                    <div className="bg-amber-50 border-l-4 border-amber-600 p-4 flex items-center justify-between gap-3">
+                      <p className="text-xs text-amber-900">{limitsError}</p>
+                      <button
+                        type="button"
+                        onClick={retrySubscription}
+                        className="px-3 py-1 bg-amber-700 text-white text-xs font-semibold uppercase cursor-pointer shrink-0"
+                      >
+                        Reintentar
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Subscription Action Notice */}
+                  {planActionNotice && (
+                    <div
+                      className={`p-4 border-l-4 flex items-start justify-between gap-3 text-xs ${
+                        planActionNotice.type === 'success'
+                          ? 'bg-emerald-50 border-[#134038] text-emerald-950'
+                          : planActionNotice.type === 'error'
+                          ? 'bg-red-50 border-[#A3195B] text-red-950'
+                          : 'bg-amber-50 border-[#F9B233] text-amber-950'
+                      }`}
+                    >
+                      <span>{planActionNotice.text}</span>
+                      <button
+                        type="button"
+                        onClick={() => setPlanActionNotice(null)}
+                        className="font-bold opacity-70 hover:opacity-100 cursor-pointer shrink-0"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Subscription Overview Card */}
+                  <div className="bg-white border border-gray-300 p-6 space-y-5">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-200">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs uppercase font-bold text-gray-500 tracking-wider">
+                            Suscripción actual
+                          </span>
+                          {isPremium ? (
+                            <span className="px-2 py-0.5 bg-[#F9B233] text-gray-950 text-[10px] font-bold uppercase tracking-wider">
+                              ★ Premium
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 bg-gray-200 text-gray-800 text-[10px] font-bold uppercase tracking-wider">
+                              Free
+                            </span>
+                          )}
+                          {subscription?.provider === 'mercadopago' && (
+                            <span className="px-2 py-0.5 bg-[#009EE3]/15 text-[#007eb5] text-[10px] font-bold uppercase tracking-wider">
+                              Mercado Pago
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900 mt-1">
+                          {isPremium ? 'RootShelf Premium' : 'RootShelf Free'}
+                          {isPremium && subscription?.provider === 'mercadopago' && (
+                            <span className="text-sm font-semibold text-gray-600 ml-2">
+                              · $3.500 ARS / mes
+                            </span>
+                          )}
+                        </h3>
+                        {planTier === 'premium' && !isPremium && (
+                          <p className="text-xs text-amber-800 mt-1">
+                            Tu suscripción Premium figura con estado <strong>{subscriptionStatus}</strong>, por lo que aplican los límites del plan Free hasta que vuelva a estar activa.
+                          </p>
+                        )}
+                        {!isPremium && subscriptionStatus === 'canceled' && (
+                          <p className="text-xs text-gray-700 mt-1">
+                            Tu suscripción mensual fue cancelada. Todo tu contenido previo permanece intacto y editable, y aplican los límites del plan Free para nuevas creaciones.
+                          </p>
+                        )}
+                        {!isPremium && subscriptionStatus === 'past_due' && (
+                          <p className="text-xs text-amber-800 mt-1">
+                            El último cobro mensual en Mercado Pago falló o quedó pausado. Podés renovar tu suscripción desde la página de Premium sin perder tu contenido.
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-3">
+                        <div className="text-right">
+                          <div className="text-[10px] uppercase font-bold text-gray-500">Estado</div>
+                          <div
+                            className={`text-xs font-bold uppercase ${
+                              subscriptionStatus === 'active'
+                                ? 'text-green-700'
+                                : 'text-amber-700'
+                            }`}
+                          >
+                            {subscriptionStatus === 'active'
+                              ? 'Activa'
+                              : subscriptionStatus === 'canceled'
+                              ? 'Cancelada'
+                              : subscriptionStatus === 'past_due'
+                              ? 'Pago pendiente'
+                              : subscriptionStatus === 'expired'
+                              ? 'Expirada'
+                              : subscriptionStatus || '—'}
+                          </div>
+                        </div>
+                        {subscription?.last_payment_at && (
+                          <div className="text-right pl-3 border-l border-gray-200">
+                            <div className="text-[10px] uppercase font-bold text-gray-500">
+                              Último pago
+                            </div>
+                            <div className="text-xs text-gray-700 font-medium">
+                              {new Date(subscription.last_payment_at).toLocaleDateString('es-AR')}
+                            </div>
+                          </div>
+                        )}
+                        {(subscription?.next_payment_date || subscription?.current_period_end) && (
+                          <div className="text-right pl-3 border-l border-gray-200">
+                            <div className="text-[10px] uppercase font-bold text-gray-500">
+                              {subscription?.provider === 'mercadopago' && isPremium
+                                ? 'Próximo cobro'
+                                : 'Vence el'}
+                            </div>
+                            <div className="text-xs text-gray-700 font-medium">
+                              {new Date(
+                                subscription.next_payment_date || subscription.current_period_end
+                              ).toLocaleDateString('es-AR')}
+                            </div>
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            setPlanActionNotice(null);
+                            if (subscription?.mp_preapproval_id) {
+                              setIsCheckingMpStatus(true);
+                              const res = await verifyMercadoPagoSubscription();
+                              setIsCheckingMpStatus(false);
+                              if (!res.success) {
+                                setPlanActionNotice({
+                                  type: 'error',
+                                  text: res.error || 'No se pudo consultar Mercado Pago.',
+                                });
+                              } else if (res.isActivePremium) {
+                                setPlanActionNotice({
+                                  type: 'success',
+                                  text: 'Estado sincronizado: RootShelf Premium activo en Mercado Pago.',
+                                });
+                              } else if (res.pendingVerification) {
+                                setPlanActionNotice({
+                                  type: 'info',
+                                  text: 'La suscripción sigue pendiente de confirmación en Mercado Pago.',
+                                });
+                              } else {
+                                setPlanActionNotice({
+                                  type: 'info',
+                                  text: `Estado verificado en Mercado Pago: ${res.mpStatus || 'sin cambios'}.`,
+                                });
+                              }
+                            } else {
+                              await refreshSubscription({ forceLoading: false });
+                            }
+                          }}
+                          disabled={isRefreshingSubscription || isCheckingMpStatus}
+                          className="px-3 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-800 text-xs font-semibold uppercase tracking-wider cursor-pointer disabled:opacity-50"
+                          title="Volver a consultar el estado real de tu suscripción"
+                        >
+                          {isRefreshingSubscription || isCheckingMpStatus
+                            ? 'Actualizando...'
+                            : 'Actualizar estado'}
+                        </button>
+                        {isPremium && subscription?.mp_preapproval_id && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPlanActionNotice(null);
+                              setShowCancelSubConfirm((prev) => !prev);
+                            }}
+                            disabled={isCancelingSub}
+                            className="px-3 py-2 border border-red-300 bg-red-50 hover:bg-red-100 text-red-800 text-xs font-semibold uppercase tracking-wider cursor-pointer disabled:opacity-50"
+                          >
+                            Cancelar suscripción
+                          </button>
+                        )}
+                        <Link
+                          href="/premium"
+                          className="px-4 py-2 bg-[#A3195B] hover:bg-[#8e154f] text-white text-xs font-semibold uppercase tracking-wider cursor-pointer"
+                        >
+                          {isPremium ? 'Ver Detalles del Plan' : 'Actualizar a Premium'}
+                        </Link>
+                      </div>
+                    </div>
+
+                    {/* Inline Cancel Subscription Confirmation */}
+                    {showCancelSubConfirm && isPremium && subscription?.mp_preapproval_id && (
+                      <div className="p-4 bg-red-50 border border-red-300 space-y-3">
+                        <div className="space-y-1">
+                          <h4 className="text-sm font-bold text-red-950">
+                            ¿Confirmás la cancelación de RootShelf Premium?
+                          </h4>
+                          <p className="text-xs text-red-900 leading-relaxed">
+                            Se cancelará el débito automático mensual de $3.500 ARS en Mercado Pago y tu cuenta volverá al plan Free.{' '}
+                            <strong>
+                              Ninguna de tus historias, personajes, lugares, objetos, notas o carpetas será eliminada
+                            </strong>
+                            : todo tu contenido previo seguirá intacto y editable, aplicándose los límites del plan Free solo si querés crear elementos nuevos que superen ese cupo.
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-3">
+                          <button
+                            type="button"
+                            disabled={isCancelingSub}
+                            onClick={async () => {
+                              setIsCancelingSub(true);
+                              const res = await cancelMercadoPagoSubscription();
+                              setIsCancelingSub(false);
+                              if (!res.success) {
+                                setPlanActionNotice({
+                                  type: 'error',
+                                  text: res.error || 'No se pudo cancelar la suscripción.',
+                                });
+                              } else {
+                                setShowCancelSubConfirm(false);
+                                setPlanActionNotice({
+                                  type: 'success',
+                                  text: 'Suscripción cancelada en Mercado Pago. Tu cuenta volvió al plan Free y todo tu contenido sigue intacto.',
+                                });
+                              }
+                            }}
+                            className="px-4 py-2 bg-red-700 hover:bg-red-800 text-white text-xs font-bold uppercase tracking-wider cursor-pointer disabled:opacity-60"
+                          >
+                            {isCancelingSub ? 'Cancelando en Mercado Pago...' : 'Sí, cancelar suscripción'}
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isCancelingSub}
+                            onClick={() => setShowCancelSubConfirm(false)}
+                            className="px-4 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-xs font-semibold uppercase tracking-wider cursor-pointer"
+                          >
+                            Mantener Premium
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Common Unrestricted Benefits */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#EFEFEF]/50 p-4 border border-gray-200">
+                      <div className="flex items-center gap-2.5 text-xs text-gray-800 font-medium">
+                        <span className="w-5 h-5 rounded-full bg-[#134038] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+                          ✓
+                        </span>
+                        <span>
+                          <strong>Lectura libre e ilimitada</strong> de todo el catálogo público de historias.
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2.5 text-xs text-gray-800 font-medium">
+                        <span className="w-5 h-5 rounded-full bg-[#134038] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+                          ✓
+                        </span>
+                        <span>
+                          <strong>Capítulos ilimitados</strong> para cada historia que crees en tu cuenta.
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Resource Limits & Usage Cards */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-base font-bold text-gray-900 tracking-tight">
+                          Uso de Recursos y Límites
+                        </h3>
+                        <p className="text-xs text-gray-600">
+                          Monitoreo en tiempo real de los elementos creados con tu cuenta.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {[
+                        {
+                          key: 'stories',
+                          label: 'Historias',
+                          desc: 'Obras narrativas creadas',
+                          link: '/stories/create',
+                        },
+                        {
+                          key: 'characters',
+                          label: 'Personajes',
+                          desc: 'Fichas de personajes creadas',
+                          link: '/characters/create',
+                        },
+                        {
+                          key: 'places',
+                          label: 'Lugares',
+                          desc: 'Escenarios y locaciones',
+                          link: '/places/create',
+                        },
+                        {
+                          key: 'objects',
+                          label: 'Objetos',
+                          desc: 'Artefactos y elementos clave',
+                          link: '/objects/create',
+                        },
+                        {
+                          key: 'notes',
+                          label: 'Notas Rápidas',
+                          desc: 'Apuntes en borrador (local)',
+                          action: () => setShowNotesModal(true),
+                        },
+                        {
+                          key: 'folders',
+                          label: 'Carpetas',
+                          desc: 'Agrupaciones de contenido personalizadas',
+                        },
+                      ].map((res) => {
+                        const status = checkResourceLimit(res.key);
+                        const hasNumericLimit = typeof status.limit === 'number' && status.limit > 0;
+                        const percent = hasNumericLimit
+                          ? Math.min(100, Math.round((status.currentUsage / status.limit) * 100))
+                          : 0;
+
+                        return (
+                          <div
+                            key={res.key}
+                            className={`bg-white border p-4 space-y-3 flex flex-col justify-between ${
+                              status.isAtLimit
+                                ? 'border-[#A3195B] ring-1 ring-[#A3195B]'
+                                : status.isNearLimit
+                                ? 'border-[#F9B233]'
+                                : 'border-gray-300'
+                            }`}
+                          >
+                            <div className="space-y-1">
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-sm text-gray-900">
+                                  {res.label}
+                                </span>
+                                {status.isAtLimit ? (
+                                  <span className="px-2 py-0.5 bg-[#A3195B] text-white text-[9px] font-bold uppercase tracking-wider">
+                                    Límite alcanzado
+                                  </span>
+                                ) : status.isNearLimit ? (
+                                  <span className="px-2 py-0.5 bg-[#F9B233] text-gray-950 text-[9px] font-bold uppercase tracking-wider">
+                                    Próximo al límite
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-0.5 bg-gray-100 text-gray-700 text-[9px] font-semibold uppercase tracking-wider">
+                                    Disponible
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-gray-500">{res.desc}</p>
+                            </div>
+
+                            {/* Counter and Progress bar */}
+                            <div className="space-y-1.5">
+                              <div className="flex items-baseline justify-between text-xs">
+                                <span className="font-semibold text-gray-700">Utilizados</span>
+                                <span className="font-bold text-gray-900">
+                                  {status.currentUsage}{' '}
+                                  <span className="text-gray-500 font-normal">
+                                    / {hasNumericLimit ? status.limit : '—'}
+                                  </span>
+                                </span>
+                              </div>
+
+                              <div className="w-full h-2 bg-gray-200 overflow-hidden">
+                                <div
+                                  className="h-full transition-all duration-300"
+                                  style={{
+                                    width: `${percent}%`,
+                                    backgroundColor: status.isAtLimit
+                                      ? '#A3195B'
+                                      : status.isNearLimit
+                                      ? '#F9B233'
+                                      : '#134038',
+                                  }}
+                                />
+                              </div>
+
+                              <div className="text-[10px] text-gray-500 flex justify-between">
+                                <span>{hasNumericLimit ? `${percent}% del plan` : 'Sin límite cargado'}</span>
+                                <span>
+                                  {typeof status.remaining === 'number'
+                                    ? `${status.remaining} disponibles`
+                                    : '—'}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Action or Alert */}
+                            <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
+                              {status.isAtLimit ? (
+                                isPremium ? (
+                                  <span className="text-[11px] font-semibold text-[#A3195B]">
+                                    Límite del plan Premium alcanzado
+                                  </span>
+                                ) : (
+                                  <Link
+                                    href="/premium"
+                                    className="text-[11px] font-bold text-[#A3195B] hover:underline"
+                                  >
+                                    Aumentar límite con Premium →
+                                  </Link>
+                                )
+                              ) : res.link ? (
+                                <Link
+                                  href={res.link}
+                                  className="text-[11px] font-semibold text-[#134038] hover:underline"
+                                >
+                                  + Crear {res.label.toLowerCase()}
+                                </Link>
+                              ) : res.action ? (
+                                <button
+                                  type="button"
+                                  onClick={res.action}
+                                  className="text-[11px] font-semibold text-[#134038] hover:underline cursor-pointer"
+                                >
+                                  + Crear nota
+                                </button>
+                              ) : (
+                                <span className="text-[10px] text-gray-400">Espacio local</span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Upgrade Banner in Plan Tab */}
+                  {!isPremium && (
+                    <div className="bg-[#134038] text-white p-6 space-y-4">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="space-y-1">
+                          <span className="text-[10px] uppercase font-bold tracking-widest text-[#F9B233]">
+                            Multiplicá tu creatividad
+                          </span>
+                          <h4 className="text-xl font-bold tracking-tight">
+                            ¿Necesitás más historias o personajes para tus mundos?
+                          </h4>
+                          <p className="text-xs text-gray-200 max-w-xl leading-relaxed">
+                            {typeof allPlanLimits?.premium?.stories === 'number'
+                              ? `Con RootShelf Premium pasás a ${allPlanLimits.premium.stories} historias, ${allPlanLimits.premium.characters ?? '—'} personajes, ${allPlanLimits.premium.objects ?? '—'} objetos, ${allPlanLimits.premium.places ?? '—'} lugares y ${allPlanLimits.premium.notes ?? '—'} notas, manteniendo todas tus obras sincronizadas y seguras.`
+                              : 'Con RootShelf Premium ampliás significativamente tus límites de creación, manteniendo todas tus obras sincronizadas y seguras.'}
+                          </p>
+                        </div>
+
+                        <Link
+                          href="/premium"
+                          className="px-6 py-3 bg-[#A3195B] hover:bg-[#8e154f] text-white text-xs font-bold uppercase tracking-wider text-center shrink-0 cursor-pointer shadow-md"
+                        >
+                          Ver Planes y Beneficios
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Modal Nueva Nota */}
       {showNotesModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -822,6 +1429,12 @@ function ProfileContent() {
                 type="button"
                 onClick={() => {
                   if (newNote.trim()) {
+                    const check = checkResourceLimit('notes');
+                    if (!check.canCreate) {
+                      setShowNotesModal(false);
+                      openPlanLimitModal('notes');
+                      return;
+                    }
                     saveNotes([...notes, newNote.trim()]);
                     setNewNote('');
                     setShowNotesModal(false);
